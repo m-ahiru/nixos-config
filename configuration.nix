@@ -20,11 +20,11 @@
     file-roller
     protontricks
     gcc
+    neofetch
     rustup
     wine
     taskwarrior3
     tty-clock
-    (pkgs.writeShellScriptBin "protonhax" (builtins.readFile ./protonhax))
     ffmpegthumbnailer
     inotify-tools
     gst_all_1.gst-plugins-bad

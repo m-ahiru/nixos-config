@@ -125,7 +125,7 @@ function fetch() {
 {
   "\$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
   "logo": {
-    "source": "nixos_small",
+    "source": "nixos-small",
     "color": {
       "1": "$c_blue",
       "2": "$c_sapphire"
