@@ -1,4 +1,4 @@
 # nixos-config
 ```
-sudo nixos-rebuild switch --flake /etc/nixos
+sudo nixos-rebuild switch --flake /etc/nixos#mahiru
 ```
