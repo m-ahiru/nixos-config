@@ -9,7 +9,6 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      <home-manager/nixos>
     ];
 
   home-manager.backupFileExtension = "backup";
@@ -202,7 +201,26 @@
   };
 
   # Flatpak
-  services.flatpak.enable = true;
+  services.flatpak = {
+    enable = true;
+    
+    remotes = [{
+      name = "flathub";
+      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+    }];
+    
+    packages = [
+      "io.github.victoralvesf.aonsoku"
+    ];
+    
+    uninstallUnmanaged = true;
+    
+    update.auto = {
+      enable = true;
+      onCalendar = "weekly";
+    };
+  };
+
 
   # Environment Variables
   # environment.variables.XDG_DATA_DIRS = lib.mkForce "/home/mahiru/.nix-profile/share:/run/current-system/sw/share";
@@ -281,7 +299,7 @@
           version = "1.0";
           
           # CHANGE THIS to the actual path of your custom theme folder
-          src = /etc/nixos/config/programs/plymouth/simple; 
+          src = ./config/programs/plymouth/simple; 
 
           installPhase = ''
             mkdir -p $out/share/plymouth/themes/simple
