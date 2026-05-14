@@ -21,6 +21,7 @@
     gcc
     neofetch
     rustup
+    nix-output-monitor
     wine
     taskwarrior3
     tty-clock

@@ -59,6 +59,7 @@ _G.reload_matugen_colors = function()
 
     require("catppuccin").setup({
       flavour = "mocha",
+      transparent_background = true,
       compile = { enabled = false }, -- MUST be false for dynamic overrides
       color_overrides = overrides,
       integrations = {

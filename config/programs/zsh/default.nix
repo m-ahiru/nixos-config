@@ -10,6 +10,7 @@
     history.ignoreAllDups = true;
     initContent = builtins.readFile ./zsh-init.sh;
     shellAliases = {
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#mahiru |& nom";
       ds3 = "protonhax run 374320 /home/mahiru/.wine/drive_c/Program\\ Files/Cheat\\ Engine/Cheat\\ Engine.exe";
       p5 = "protonhax run 1687950 /home/mahiru/.wine/drive_c/Program\\ Files/Cheat\\ Engine/Cheat\\ Engine.exe";
       sbr = "protonhax run 3489700 /home/mahiru/.wine/drive_c/Program\\ Files/Cheat\\ Engine/Cheat\\ Engine.exe";
