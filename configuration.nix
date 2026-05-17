@@ -20,7 +20,7 @@
     protontricks
     gcc
     neofetch
-    rustup
+    kdePackages.kdenlive
     nix-output-monitor
     wine
     taskwarrior3
@@ -368,6 +368,9 @@ services.xserver.videoDrivers = [ "amdgpu" ];
 hardware.graphics = {
 	enable = true;
 	enable32Bit = true;
+  extraPackages = with pkgs; [
+      rocmPackages.clr.icd
+  ];
 }; 
   system.stateVersion = "25.11"; 
 }

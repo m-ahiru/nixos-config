@@ -24,6 +24,7 @@ in
   home.username = "mahiru";
   home.homeDirectory = "/home/mahiru";
   home.stateVersion = "25.11"; 
+  home.sessionPath = [ "$HOME/.cargo/bin" ];
   
   home.packages = with pkgs; [
       adwaita-icon-theme
@@ -88,6 +89,10 @@ home.pointerCursor = {
   };
 
   programs.home-manager.enable = true;
+  programs.rustup = {
+  enable = true;
+  toolchains = [ "stable" ];
+};
 
   fonts.fontconfig.enable = true; 
   
