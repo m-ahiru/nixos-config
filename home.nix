@@ -89,10 +89,6 @@ home.pointerCursor = {
   };
 
   programs.home-manager.enable = true;
-  programs.rustup = {
-  enable = true;
-  toolchains = [ "stable" ];
-};
 
   fonts.fontconfig.enable = true; 
   

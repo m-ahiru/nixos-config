@@ -18,6 +18,8 @@
     wget 
     file-roller
     protontricks
+    protonup-qt
+    rustup
     gcc
     neofetch
     kdePackages.kdenlive
