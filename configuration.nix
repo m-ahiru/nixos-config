@@ -74,7 +74,10 @@
     papers
     fastfetch
     jetbrains.idea-community
-    quickshell
+    (import inputs.nixpkgs-quickshell {
+    system = "x86_64-linux";
+    config.allowUnfree = true;
+  }).quickshell
     gnome-shell-extensions
     grim
     playerctl
