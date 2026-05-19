@@ -73,7 +73,6 @@
     p7zip
     papers
     fastfetch
-    jetbrains.idea-community
     (import inputs.nixpkgs-quickshell {
     system = "x86_64-linux";
     config.allowUnfree = true;
