@@ -19,7 +19,9 @@
     file-roller
     protontricks
     protonup-qt
+    yt-dlp
     rustup
+    audacity
     gcc
     neofetch
     kdePackages.kdenlive

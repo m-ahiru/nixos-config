@@ -212,4 +212,5 @@ stsetup() {
     nix develop --command zsh -ic "edit; exec zsh"
 }
 
+{ paplay /etc/nixos/config/programs/zsh/assets/rezero.mp3 &>/dev/null } &!
 fetch
