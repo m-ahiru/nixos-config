@@ -113,6 +113,29 @@ require('gitsigns').setup()
 require('nvim-autopairs').setup({})
 require('Comment').setup()
 require('which-key').setup()
+local alpha = require('alpha')
+local dashboard = require('alpha.themes.dashboard')
+
+dashboard.section.buttons.val = {
+  dashboard.button('f', '󰍉  Find File',     '<cmd>Telescope find_files<cr>'),
+  dashboard.button('r', '  Recent Files',   '<cmd>Telescope oldfiles<cr>'),
+  dashboard.button('n', '  NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
+  dashboard.button('q', '  Quit',           '<cmd>qa<cr>'),
+}
+
+dashboard.section.header.val = {
+  "                                   ",
+  "   ███╗   ██╗██╗   ██╗██╗███╗   ███╗",
+  "   ████╗  ██║██║   ██║██║████╗ ████║",
+  "   ██╔██╗ ██║██║   ██║██║██╔████╔██║",
+  "   ██║╚██╗██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+  "   ██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║",
+  "   ╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝",
+  "                                   ",
+}
+
+
+alpha.setup(dashboard.config)
 
 require("nvim-tree").setup({
   filters = { dotfiles = false },
@@ -158,6 +181,35 @@ local luasnip = require 'luasnip'
  
 require("luasnip.loaders.from_vscode").lazy_load()
 
+vim.keymap.set('n', '/', function()
+  require('telescope.builtin').current_buffer_fuzzy_find()
+end, { desc = 'Search in buffer' })
+vim.keymap.set('n', '?', function()
+  require('telescope.builtin').current_buffer_fuzzy_find()
+end, { desc = 'Search in buffer (reverse)' })
+vim.keymap.set('n', '<leader>h', '<cmd>Alpha<cr>', { desc = 'Home Screen' })
+
+-- Terminal toggle
+local term_buf = -1
+local term_win = -1
+
+vim.keymap.set('n', '<leader>t', function()
+  if vim.api.nvim_win_is_valid(term_win) then
+    vim.api.nvim_win_hide(term_win)
+  elseif vim.api.nvim_buf_is_valid(term_buf) then
+    vim.cmd('botright 15split')
+    term_win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(term_win, term_buf)
+  else
+    vim.cmd('botright 15split | terminal')
+    term_buf = vim.api.nvim_get_current_buf()
+    term_win = vim.api.nvim_get_current_win()
+  end
+  vim.cmd('startinsert')
+end)
+
+-- Mit Escape zurück in den normalen Modus im Terminal
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { noremap = true })
 cmp.setup {
   snippet = {
     expand = function(args)

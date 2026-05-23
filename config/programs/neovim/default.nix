@@ -19,6 +19,7 @@
     plugins = with pkgs.vimPlugins; [
       catppuccin-nvim
       nvim-web-devicons
+      alpha-nvim
       nvim-treesitter.withAllGrammars 
       lualine-nvim
       bufferline-nvim

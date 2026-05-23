@@ -1,0 +1,14 @@
+@-moz-document domain("search.mahiru.dev") {
+    :root {
+        --color-base-background: {{colors.background.default.hex}};
+        --color-base-foreground: {{colors.on_surface.default.hex}};
+        --color-header-background: {{colors.surface_container.default.hex}};
+        --color-header-foreground: {{colors.on_surface.default.hex}};
+        --color-urls: {{colors.primary.default.hex}};
+        --color-description-font-color: {{colors.on_surface_variant.default.hex}};
+        --color-result-background: {{colors.surface_container_low.default.hex}};
+        --color-result-border-color: {{colors.outline_variant.default.hex}};
+        --color-input-background: {{colors.surface_container_high.default.hex}};
+        --color-input-font-color: {{colors.on_surface.default.hex}};
+    }
+}

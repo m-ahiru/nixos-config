@@ -2,6 +2,15 @@ setopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 
+# Auto-start tmux
+if [ -z "$TMUX" ]; then
+  tmux new-session \; \
+    rename-window terminal \; \
+    new-window -n vim \; \
+    send-keys 'vim' Enter \; \
+    select-window -t 0
+fi
+
 cd() {
   builtin cd $@ &&
   ls
@@ -212,5 +221,7 @@ stsetup() {
     nix develop --command zsh -ic "edit; exec zsh"
 }
 
-{ paplay /etc/nixos/config/programs/zsh/assets/rezero.mp3 &>/dev/null } &!
+{ paplay --volume=32768 /etc/nixos/config/programs/zsh/assets/rezero.mp3 &>/dev/null } &!
 fetch
+# Reload tmux colors after matugen updates
+[ -n "$TMUX" ] && /etc/nixos/config/programs/zsh/Scripts/tmux-colors.sh

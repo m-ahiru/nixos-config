@@ -5,6 +5,14 @@ reload_apps = false
 input_path = "~/.config/matugen/templates/qs_colors.json.template"
 output_path = "/tmp/qs_colors.json"
 
+[templates.librewolf]
+input_path = "~/.config/matugen/templates/firefox.css"
+output_path = "~/.config/librewolf/librewolf/ltlhhlc4.default/chrome/matugen.css"
+
+[templates.searxng]
+input_path = "~/.config/matugen/templates/websites/searxng.css.template"
+output_path = "~/.config/librewolf/librewolf/ltlhhlc4.default/chrome/matugen-searxng.css"
+
 [templates.kitty]
 input_path = "~/.config/matugen/templates/kitty-colors.conf.template"
 output_path = "/tmp/kitty-matugen-colors.conf"

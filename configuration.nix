@@ -19,6 +19,7 @@
     file-roller
     protontricks
     protonup-qt
+    linux-wallpaperengine
     yt-dlp
     rustup
     audacity
