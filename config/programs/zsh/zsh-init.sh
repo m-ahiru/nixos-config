@@ -9,6 +9,9 @@ if [ -z "$TMUX" ]; then
     new-window -n vim \; \
     send-keys 'vim' Enter \; \
     select-window -t 0
+else
+  # Alte sessions aufräumen außer der aktuellen
+  tmux kill-session -a 2>/dev/null
 fi
 
 cd() {
