@@ -120,6 +120,15 @@ dashboard.section.buttons.val = {
   dashboard.button('f', '󰍉  Find File',     '<cmd>Telescope find_files<cr>'),
   dashboard.button('r', '  Recent Files',   '<cmd>Telescope oldfiles<cr>'),
   dashboard.button('n', '  NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
+  dashboard.button('n', '  New File', function()
+  vim.ui.input({ prompt = 'New file: ', default = vim.fn.expand('~/') }, function(input)
+    if input and input ~= '' then
+      -- mkdir -p für alle parent directories
+      vim.fn.mkdir(vim.fn.fnamemodify(input, ':h'), 'p')
+      vim.cmd('edit ' .. input)
+    end
+  end)
+end),
   dashboard.button('q', '  Quit',           '<cmd>qa<cr>'),
 }
 
