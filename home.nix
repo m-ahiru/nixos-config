@@ -85,6 +85,7 @@ home.file = {
     set -g status-interval 5
     set -g status-left-length 50
     set -g status-right-length 150
+    set-option -g destroy-unattached on
     set-option -g status "on"
 
     bind -n M-1 select-window -t 0

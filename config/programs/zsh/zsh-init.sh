@@ -2,9 +2,10 @@ setopt APPEND_HISTORY
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 
-# Auto-start tmux
 if [ -z "$TMUX" ]; then
-  tmux new-session \; \
+  # Nur unattached Sessions killen
+  tmux list-sessions 2>/dev/null | grep -v attached | cut -d: -f1 | xargs -I{} tmux kill-session -t {} 2>/dev/null
+  tmux new-session -A -s "$(id -u)-$$" \; \
     rename-window terminal \; \
     new-window -n vim \; \
     send-keys 'vim' Enter \; \
