@@ -93,5 +93,8 @@ home.file = {
     set-hook -g session-created "run-shell '/etc/nixos/config/programs/zsh/Scripts/tmux-colors.sh'"
     set-hook -g client-attached "run-shell '/etc/nixos/config/programs/zsh/Scripts/tmux-colors.sh'"
   '';
+    ".local/share/easyeffects/input/compressor.json" = {
+    source = ./config/programs/easyeffects/input/compressor.json;
+  };
 };
 }
