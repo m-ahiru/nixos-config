@@ -20,6 +20,8 @@
       catppuccin-nvim
       nvim-web-devicons
       alpha-nvim
+      nui-nvim
+      searchbox-nvim
       nvim-treesitter.withAllGrammars 
       lualine-nvim
       bufferline-nvim

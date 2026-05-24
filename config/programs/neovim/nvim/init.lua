@@ -108,6 +108,17 @@ require('nvim-treesitter.configs').setup {
   indent = { enable = true },
 }
 
+require('searchbox').setup({
+  popup = {
+    position = { row = '50%', col = '50%' },
+    size = 50,
+    border = {
+      style = 'rounded',
+      text = { top = ' Search ', top_align = 'center' },
+    },
+  }
+})
+
 require("ibl").setup()
 require('gitsigns').setup()
 require('nvim-autopairs').setup({})
@@ -194,12 +205,8 @@ local luasnip = require 'luasnip'
  
 require("luasnip.loaders.from_vscode").lazy_load()
 
-vim.keymap.set('n', '/', function()
-  require('telescope.builtin').current_buffer_fuzzy_find()
-end, { desc = 'Search in buffer' })
-vim.keymap.set('n', '?', function()
-  require('telescope.builtin').current_buffer_fuzzy_find()
-end, { desc = 'Search in buffer (reverse)' })
+vim.keymap.set('n', '/', ':SearchBoxIncSearch<CR>', { desc = 'Search' })
+vim.keymap.set('n', '?', ':SearchBoxIncSearch reverse=true<CR>', { desc = 'Search reverse' })
 vim.keymap.set('n', '<leader>h', '<cmd>Alpha<cr>', { desc = 'Home Screen' })
 
 -- Terminal toggle

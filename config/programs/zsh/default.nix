@@ -20,6 +20,7 @@
       claude = "setsid chromium --app=https://claude.ai --class Claude >/dev/null 2>&1 &";
       whatsapp = "setsid chromium --app=https://web.whatsapp.com --class WhatsApp >/dev/null 2>&1 &";
       soundcloud = "setsid chromium --app=https://soundcloud.com --class Soundcloud >/dev/null 2>&1 &";
+      ssh = "TERM=xterm-256color ssh";
     };
 
     oh-my-zsh = {
