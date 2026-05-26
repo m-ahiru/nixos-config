@@ -2,22 +2,24 @@
   description = "mahiru's NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     
     # Hyprland Pin
     nixpkgs-hyprland.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
     # Quickshell Pin
     nixpkgs-quickshell.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
+    nixpkgs-swww.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
+    nixpkgs-bwrap.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
     
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     
     nix-flatpak.url = "github:gmodena/nix-flatpak/latest";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-hyprland, nixpkgs-quickshell, home-manager, nix-flatpak, ... }@inputs: {
+  outputs = { self, nixpkgs, nixpkgs-hyprland, nixpkgs-quickshell, nixpkgs-bwrap, nixpkgs-swww, home-manager, nix-flatpak, ... }@inputs: {
     nixosConfigurations.mahiru = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       

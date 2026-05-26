@@ -20,6 +20,7 @@
       catppuccin-nvim
       nvim-web-devicons
       alpha-nvim
+      plenary-nvim
       nui-nvim
       searchbox-nvim
       nvim-treesitter.withAllGrammars 
@@ -46,5 +47,5 @@
   };
 
   # Target only the specific file so the parent directory remains writable
-  xdg.configFile."nvim/init.lua".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/programs/neovim/nvim/init.lua";
+  programs.neovim.extraLuaConfig = builtins.readFile ./nvim/init.lua;
 }

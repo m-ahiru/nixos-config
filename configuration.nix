@@ -22,13 +22,13 @@
     wget 
     file-roller
     protontricks
+    pkgs.android-tools
     protonup-qt
     linux-wallpaperengine
     yt-dlp
     rustup
     audacity
     gcc
-    neofetch
     kdePackages.kdenlive
     nix-output-monitor
     wine
@@ -63,7 +63,7 @@
     fzf
     direnv
     zbar
-    python311
+    python3
     ffmpeg
     python314
     (wrapFirefox (pkgs.firefox-unwrapped.override { pipewireSupport = true; }) {})
@@ -80,10 +80,7 @@
     p7zip
     papers
     fastfetch
-    (import inputs.nixpkgs-quickshell {
-    system = "x86_64-linux";
-    config.allowUnfree = true;
-  }).quickshell
+    quickshell
     gnome-shell-extensions
     grim
     playerctl
@@ -97,11 +94,9 @@
     gnome-tweaks
     pkgsCross.mingwW64.stdenv.cc
     wmctrl
-    bottles
     qbittorrent
     power-profiles-daemon
     jdk8
-    steam
   ];
 
   environment.pathsToLink = [ "/share/gsettings-schemas" ];
@@ -121,6 +116,12 @@
   users.defaultUserShell = pkgs.zsh;
   system.userActivationScripts.zshrc = "touch .zshrc";
 
+security.wrappers.bwrap = {
+  owner = "root";
+  group = "root";
+  setuid = true;
+  source = "${pkgs.bubblewrap}/bin/bwrap";
+};
   security.sudo.extraRules = [
     {
       users = [ "mahiru" ];
@@ -143,7 +144,6 @@
 };
   programs.zsh.enable = true;
 
-  programs.adb.enable = true;
 
   # Install firefox.
   programs.firefox.enable = true;
@@ -157,15 +157,16 @@
     remotePlay.openFirewall = true; 
     dedicatedServer.openFirewall = true; 
   };
-  programs.gamemode.enable = true;
+  programs.gamemode.enable = false;
 
   # Home manager
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true; 
   
+  home-manager.extraSpecialArgs = { inherit inputs; system = "x86_64-linux"; };
   home-manager.users.mahiru = {
-    imports = [ ./home.nix ];
-  };
+  imports = [ ./home.nix ];
+};
 
   # Desktop environment, window managers and theme
   services.xserver.enable = true;
@@ -182,22 +183,38 @@
   # Tailscale
   services.tailscale.enable = true;
 
+nixpkgs.overlays = [
+  (final: prev: {
+    bubblewrap = (import inputs.nixpkgs-bwrap {
+      system = "x86_64-linux";
+      config.allowUnfree = true;
+    }).bubblewrap;
+  })
+];
   # Hyprland
-  programs.hyprland = {
+programs.hyprland = {
   enable = true;
   package = (import inputs.nixpkgs-hyprland {
     system = "x86_64-linux";
     config.allowUnfree = true;
   }).hyprland;
+  portalPackage = (import inputs.nixpkgs-hyprland {
+    system = "x86_64-linux";
+    config.allowUnfree = true;
+  }).xdg-desktop-portal-hyprland;
 };
   
   # XDG Portals
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-gtk
-    ];
-  };
+xdg.portal = {
+  enable = true;
+  extraPortals = with pkgs; [
+    xdg-desktop-portal-gtk
+    (import inputs.nixpkgs-hyprland {
+      system = "x86_64-linux";
+      config.allowUnfree = true;
+    }).xdg-desktop-portal-hyprland
+  ];
+};
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -349,7 +366,6 @@
   # Virtualization
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
-	
   # Bootloader and kernel
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

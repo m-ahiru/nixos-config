@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, system, ... }:
 
 {
   imports = [
@@ -18,7 +18,7 @@
     fortune
     wl-screenrec
     alsa-utils
-    swww
+    (inputs.nixpkgs-swww.legacyPackages.${system}.swww)
     networkmanager_dmenu
     wl-clipboard
     fd

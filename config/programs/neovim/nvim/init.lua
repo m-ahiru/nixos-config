@@ -1,4 +1,6 @@
 -- FIX: Auto-create undo directory to prevent E828 error
+vim.opt.packpath:prepend(vim.fn.expand("~/.local/share/nvim/site"))
+vim.cmd("packloadall!")
 local undodir = vim.fn.stdpath("state") .. "/undo"
 if vim.fn.isdirectory(undodir) == 0 then
   vim.fn.mkdir(undodir, "p")
@@ -88,7 +90,7 @@ _G.reload_matugen_colors = function()
     -- Reload lualine dynamically (safely updates without module clearing)
     local ok_lualine, lualine = pcall(require, "lualine")
     if ok_lualine then
-      lualine.setup { options = { theme = 'catppuccin' } }
+      lualine.setup { options = { theme = 'auto' } }
     end
     
     -- Force Neovim to redraw
@@ -103,10 +105,12 @@ end
 _G.reload_matugen_colors()
 
 -- PLUGIN CONFIGURATIONS
-require('nvim-treesitter.configs').setup {
-  highlight = { enable = true },
-  indent = { enable = true },
-}
+vim.defer_fn(function()
+  require('nvim-treesitter.config').setup {
+    highlight = { enable = true },
+    indent = { enable = true },
+  }
+end, 0)
 
 require('searchbox').setup({
   popup = {
