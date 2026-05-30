@@ -10,6 +10,7 @@ in
 {
   imports = [
     ./config/sessions/hyprland/default.nix
+    ./config/programs/nautilus
   ] ++ programImports; 
   home.username = "mahiru";
   home.homeDirectory = "/home/mahiru";
@@ -80,6 +81,8 @@ home.file = {
     set -g history-limit 10000
     set -sg escape-time 0
     set -g mode-keys vi
+    bind-keys -T copy-mode-vi v send-keys -X begin-selection
+    bind-keys -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "wl-copy"
     set -g mouse on
     set -g base-index 0
     set -g status-interval 5
