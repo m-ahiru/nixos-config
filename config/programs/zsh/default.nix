@@ -14,6 +14,7 @@
       term = "setsid kitty --class ScratchpadTerm --title Scratchpad >/dev/null 2>&1 &";
       gubtool = "~/.cargo/bin/gubtool";
       compress = "/etc/nixos/config/programs/zsh/Scripts/resize_video.sh";
+      dlvideo = ''yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -P ~/Videos'';
       crop43 = "/etc/nixos/config/programs/zsh/Scripts/crop43.sh";
       # ac = "cd ~/Apps/uClicker/;./uClicker";
       upscale = "/etc/nixos/config/programs/zsh/Scripts/upscale.sh";
