@@ -71,11 +71,16 @@ in
   fonts.fontconfig.enable = true; 
   
 home.file = {
+  ".config/hypr/xdph.conf".text = ''
+    screencopy {
+      allow_token_by_default = true
+    }
+  '';
   ".local/share/fonts/" = {
     source = config/fonts;
     recursive = true;
   };
-    ".local/share/easyeffects/input/compressor.json" = {
+  ".local/share/easyeffects/input/compressor.json" = {
     source = ./config/programs/easyeffects/input/compressor.json;
   };
 };
