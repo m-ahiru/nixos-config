@@ -25,6 +25,8 @@
     pkgs.android-tools
     protonup-qt
     linux-wallpaperengine
+    ryubing
+    icu
     yt-dlp
     rustup
     audacity
@@ -171,6 +173,11 @@ security.wrappers.bwrap = {
   # Desktop environment, window managers and theme
   services.xserver.enable = true;
 
+  #Mullvad
+  services.mullvad-vpn.enable = true;
+  services.mullvad-vpn.package = pkgs.mullvad-vpn;
+
+
   # Enable the GNOME Desktop Environment.
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
@@ -246,6 +253,7 @@ xdg.portal = {
     
     packages = [
       "io.github.victoralvesf.aonsoku"
+      "it.mijorus.gearlever"
     ];
     
     uninstallUnmanaged = true;

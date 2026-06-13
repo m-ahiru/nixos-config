@@ -77,4 +77,11 @@ output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 input_path = '~/.config/matugen/templates/hyprland.conf.template'
 output_path = '~/.config/hypr/colors.conf'
 
+[templates.steam]
+input_path = "~/.config/matugen/templates/steam.css"
+output_path = "~/.config/AdwSteamGtk/custom.css"
+post_hook = "adwaita-steam-gtk -i"
 
+[templates.obs]
+input_path = "~/.config/matugen/templates/matugen.obt"
+output_path = "~/.config/obs-studio/themes/matugen.obt"
