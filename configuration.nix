@@ -6,7 +6,7 @@
 ###  PROTON_REMOTE_DEBUG_CMD="/home/mahiru/.wine/drive_c/Program\ Files/Cheat\ Engine/Cheat\ Engine.exe" %command%
 ###################################################
 
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, inputs, unstable, ... }:
 
 {
   # Imports
@@ -21,7 +21,9 @@
   environment.systemPackages = with pkgs; [
     wget 
     file-roller
+    (inputs.nixpkgs-librewolf.legacyPackages.${pkgs.system}.librewolf)
     protontricks
+    unstable.protonplus
     pkgs.android-tools
     protonup-qt
     linux-wallpaperengine
@@ -52,7 +54,6 @@
     vesktop
     cbonsai
     git
-    librewolf
     killall
     btop  
     mpv
@@ -188,40 +189,21 @@ security.wrappers.bwrap = {
   };
   services.displayManager.defaultSession = "hyprland";
   # Tailscale
+
   services.tailscale.enable = true;
 
-nixpkgs.overlays = [
-  (final: prev: {
-    bubblewrap = (import inputs.nixpkgs-bwrap {
-      system = "x86_64-linux";
-      config.allowUnfree = true;
-    }).bubblewrap;
-  })
-];
+
+
   # Hyprland
-programs.hyprland = {
-  enable = true;
-  package = (import inputs.nixpkgs-hyprland {
-    system = "x86_64-linux";
-    config.allowUnfree = true;
-  }).hyprland;
-  portalPackage = (import inputs.nixpkgs-hyprland {
-    system = "x86_64-linux";
-    config.allowUnfree = true;
-  }).xdg-desktop-portal-hyprland;
-};
+  programs.hyprland.enable = true;
   
   # XDG Portals
-xdg.portal = {
-  enable = true;
-  extraPortals = with pkgs; [
-    xdg-desktop-portal-gtk
-    (import inputs.nixpkgs-hyprland {
-      system = "x86_64-linux";
-      config.allowUnfree = true;
-    }).xdg-desktop-portal-hyprland
-  ];
-};
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+    ];
+  };
 
   # Configure keymap in X11
   services.xserver.xkb = {

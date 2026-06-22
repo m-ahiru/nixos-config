@@ -11,7 +11,10 @@
     initContent = builtins.readFile ./zsh-init.sh;
     shellAliases = {
       rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#mahiru |& nom";
+      rebuildcope = "sudo nixos-rebuild switch --flake /etc/nixos#mahiru && sudo systemctl restart home-manager-mahiru.service";
+      rebuildboot = "sudo nixos-rebuild boot --flake /etc/nixos#mahiru |& nom";
       term = "setsid kitty --class ScratchpadTerm --title Scratchpad >/dev/null 2>&1 &";
+      clock = "setsid kitty --title Clock tty-clock -c -C 6 -s >/dev/null 2>&1 &";
       gubtool = "~/.cargo/bin/gubtool";
       compress = "/etc/nixos/config/programs/zsh/Scripts/resize_video.sh";
       dlvideo = ''yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -P ~/Videos'';

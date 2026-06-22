@@ -1,17 +1,14 @@
 { config, pkgs, lib, inputs, system, ... }:
-
 {
   imports = [
     ./hypridle.nix 
   ];
-
   wayland.windowManager.hyprland = {
     enable = true;
     extraConfig = ''
       source = /etc/nixos/config/sessions/hyprland/hyprland.conf
     '';
   };
-
   home.packages = with pkgs; [
     rofi
     pavucontrol
@@ -47,16 +44,8 @@
     ladspa-sdk
     imagemagick
   ];
-
   home.sessionVariables.NIXOS_OZONE_WL = "1";
-
-  home.file.".config/hypr/scripts".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/scripts";	
-  home.activation.copyHyprConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      ${pkgs.rsync}/bin/rsync -a --update /etc/nixos/config/sessions/hyprland/config/ $HOME/.config/hypr/config/
-      chmod -R u+w $HOME/.config/hypr/config
-  '';
-  home.activation.copyHyprTemplates = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      ${pkgs.rsync}/bin/rsync -a --update /etc/nixos/config/sessions/hyprland/templates/ $HOME/.config/hypr/templates/
-      chmod -R u+w $HOME/.config/hypr/templates
-  '';
+  home.file.".config/hypr/scripts".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/scripts";
+  home.file.".config/hypr/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/config";
+  home.file.".config/hypr/templates".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/templates";
 }
