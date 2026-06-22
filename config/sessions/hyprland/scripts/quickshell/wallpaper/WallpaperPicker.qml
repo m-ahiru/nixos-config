@@ -179,7 +179,14 @@ Item {
                         swww img -o "$TARGET_MONITORS" "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >> ${logFile} 2>&1 &
                     fi
                     
-                    ( matugen image "$FINAL_THUMB" || true; bash "$RELOAD_SCRIPT" || true ) &
+                    (
+                      echo "[$(date +'%H:%M:%S.%3N')] HOME=$HOME THUMB=$FINAL_THUMB" >> /tmp/qs_swww_debug.log
+                      ls -la "$FINAL_THUMB" >> /tmp/qs_swww_debug.log 2>&1
+                      matugen image "$FINAL_THUMB" --source-color-index 0 >> /tmp/qs_swww_debug.log 2>&1
+                      echo "[$(date +'%H:%M:%S.%3N')] matugen exit: $?" >> /tmp/qs_swww_debug.log
+                      bash "$RELOAD_SCRIPT" >> /tmp/qs_swww_debug.log 2>&1
+                      echo "[$(date +'%H:%M:%S.%3N')] reload exit: $?" >> /tmp/qs_swww_debug.log
+                    ) &
                 `;
                 Quickshell.execDetached(["bash", "-c", applyScript]);
             } else {
@@ -221,7 +228,14 @@ Item {
                             swww img -o "$TARGET_MONITORS" "$DEST_FILE" --transition-type ${randomTransition} --transition-pos 0.5,0.5 --transition-fps 144 --transition-duration 1 >> ${logFile} 2>&1 &
                         fi
                         
-                        ( matugen image "$FINAL_THUMB" || true; bash "$RELOAD_SCRIPT" || true ) &
+                        (
+                      echo "[$(date +'%H:%M:%S.%3N')] HOME=$HOME THUMB=$FINAL_THUMB" >> /tmp/qs_swww_debug.log
+                      ls -la "$FINAL_THUMB" >> /tmp/qs_swww_debug.log 2>&1
+                      matugen image "$FINAL_THUMB" --source-color-index 0 >> /tmp/qs_swww_debug.log 2>&1
+                      echo "[$(date +'%H:%M:%S.%3N')] matugen exit: $?" >> /tmp/qs_swww_debug.log
+                      bash "$RELOAD_SCRIPT" >> /tmp/qs_swww_debug.log 2>&1
+                      echo "[$(date +'%H:%M:%S.%3N')] reload exit: $?" >> /tmp/qs_swww_debug.log
+                    ) &
                     fi
                 `;
                 Quickshell.execDetached(["bash", "-c", downloadScript]);
@@ -270,7 +284,14 @@ Item {
             pkill mpvpaper || true
             
             ${wallpaperCmd}
-            ( matugen image "${escThumb}" || true; bash "${escReload}" || true ) &
+            (
+              echo "[$(date +'%H:%M:%S.%3N')] HOME=$HOME THUMB=${escThumb}" >> ${logFile}
+              ls -la "${escThumb}" >> ${logFile} 2>&1
+              matugen image "${escThumb}" --source-color-index 0 >> ${logFile} 2>&1
+              echo "[$(date +'%H:%M:%S.%3N')] matugen exit: $?" >> ${logFile}
+              bash "${escReload}" >> ${logFile} 2>&1
+              echo "[$(date +'%H:%M:%S.%3N')] reload exit: $?" >> ${logFile}
+            ) &
         `;
         Quickshell.execDetached(["bash", "-c", fullScript]);
     }

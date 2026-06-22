@@ -137,6 +137,21 @@ security.wrappers.bwrap = {
     }
   ];
 
+  services.pipewire.wireplumber.extraConfig."51-rode-mic-default-volume" = {
+  "monitor.alsa.rules" = [
+    {
+      matches = [
+        { "device.name" = "alsa_card.usb-R__DE_R__DE_NT-USB__4288D4D7-00"; }
+      ];
+      actions = {
+        "update-props" = {
+          "device.routes.default-source-volume" = 0.6;
+        };
+      };
+    }
+  ];
+};
+
   services.logind.settings.Login = {
     HandlePowerKey = "ignore";
   }; 
@@ -145,6 +160,7 @@ security.wrappers.bwrap = {
     enable = true;
     binfmt = true;
 };
+
   programs.zsh.enable = true;
 
 
