@@ -1,13 +1,15 @@
-{ config, pkgs, ... }:
-
+{ config, pkgs, inputs, ... }:
+let
+  nvimPkgs = inputs.nixpkgs-neovim.legacyPackages.${pkgs.system};
+in
 {
   programs.neovim = {
     enable = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
-
-    extraPackages = with pkgs; [
+    package = nvimPkgs.neovim-unwrapped;
+    extraPackages = with nvimPkgs; [
       ripgrep
       fd
       lua-language-server
@@ -15,8 +17,7 @@
       nil
       nixpkgs-fmt
     ];
-
-    plugins = with pkgs.vimPlugins; [
+    plugins = with nvimPkgs.vimPlugins; [
       catppuccin-nvim
       nvim-web-devicons
       alpha-nvim
@@ -45,7 +46,5 @@
       friendly-snippets
     ];
   };
-
-  # Target only the specific file so the parent directory remains writable
   programs.neovim.extraLuaConfig = builtins.readFile ./nvim/init.lua;
 }

@@ -4,14 +4,14 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     
-    # Hyprland Pin
+    # Pins
     nixpkgs-hyprland.url = "github:NixOS/nixpkgs/3e41b24abd260e8f71dbe2f5737d24122f972158";
-    # Quickshell Pin
     nixpkgs-quickshell.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
     nixpkgs-swww.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
     nixpkgs-bwrap.url = "github:NixOS/nixpkgs/8fd9daa3db09ced9700431c5b7ad0e8ba199b575";
     nixpkgs-librewolf.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-neovim.url = "github:NixOS/nixpkgs/e8210c649915deed7080033cdbabcc19e40bb899";
     
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
