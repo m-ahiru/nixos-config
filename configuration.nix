@@ -323,6 +323,7 @@ security.wrappers.bwrap = {
   fsType = "ext4";
   };
 
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   nix.gc = {

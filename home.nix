@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   programsDir = ./config/programs;
   files = builtins.readDir programsDir;
@@ -24,7 +24,6 @@ in
     tmux
     qt6Packages.qt6ct
   ];
-
   home.pointerCursor = {
     gtk.enable = true;
     x11.enable = true;
@@ -32,17 +31,20 @@ in
     size = 24;
     package = pkgs.bibata-cursors;
   };
-
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
       gtk-theme = "adw-gtk3-dark";
     };
   };
+  xdg.configFile."pipewire/pipewire.conf.d/disable-bell.conf".text = ''
+    context.properties = {
+        module.x11.bell = false
+    }
+  '';
   
   home.sessionVariables = {};
   services.easyeffects.enable = true;  
-
   gtk = {
     enable = true;
     gtk3.extraCss = ''@import url("file:///home/mahiru/.cache/matugen/colors-gtk.css");'';
@@ -66,22 +68,27 @@ in
     extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
     config.common.default = "*";
   };
-
   programs.home-manager.enable = true;
   fonts.fontconfig.enable = true; 
   
-home.file = {
-  ".config/hypr/xdph.conf".text = ''
-    screencopy {
-      allow_token_by_default = true
-    }
+  home.file = {
+    ".config/hypr/xdph.conf".text = ''
+      screencopy {
+        allow_token_by_default = true
+      }
+    '';
+    ".local/share/fonts/" = {
+      source = config/fonts;
+      recursive = true;
+    };
+    ".local/share/easyeffects/input/compressor.json" = {
+      source = ./config/programs/easyeffects/input/compressor.json;
+    };
+  };
+
+  home.activation.cloneWallpapers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD mkdir -p $VERBOSE_ARG "$HOME/Pictures/Wallpapers"
+    $DRY_RUN_CMD ${pkgs.rsync}/bin/rsync -a $VERBOSE_ARG --delete \
+      /etc/nixos/config/Wallpapers/ "$HOME/Pictures/Wallpapers/"
   '';
-  ".local/share/fonts/" = {
-    source = config/fonts;
-    recursive = true;
-  };
-  ".local/share/easyeffects/input/compressor.json" = {
-    source = ./config/programs/easyeffects/input/compressor.json;
-  };
-};
 }
