@@ -3,12 +3,14 @@
   imports = [
     ./hypridle.nix 
   ];
-  wayland.windowManager.hyprland = {
-    enable = true;
-    extraConfig = ''
-      source = /etc/nixos/config/sessions/hyprland/hyprland.conf
-    '';
-  };
+wayland.windowManager.hyprland = {
+  enable = true;
+  package = null;
+  portalPackage = null;
+  extraConfig = ''
+    source = /etc/nixos/config/sessions/hyprland/hyprland.conf
+  '';
+};
   home.packages = with pkgs; [
     rofi
     pavucontrol

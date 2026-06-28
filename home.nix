@@ -63,11 +63,6 @@ in
     platformTheme.name = "qt6ct";
   };
   
-  xdg.portal = {
-    enable = true;
-    extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
-    config.common.default = "*";
-  };
   programs.home-manager.enable = true;
   fonts.fontconfig.enable = true; 
   

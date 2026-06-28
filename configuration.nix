@@ -211,7 +211,11 @@ security.wrappers.bwrap = {
 
 
   # Hyprland
-  programs.hyprland.enable = true;
+programs.hyprland = {
+  enable = true;
+  package = inputs.nixpkgs-hyprland.legacyPackages.${pkgs.system}.hyprland;
+  portalPackage = inputs.nixpkgs-hyprland.legacyPackages.${pkgs.system}.xdg-desktop-portal-hyprland;
+};
   
   # XDG Portals
   xdg.portal = {
