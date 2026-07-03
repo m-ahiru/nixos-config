@@ -17,13 +17,23 @@ in
   home.stateVersion = "25.11"; 
   home.sessionPath = [ "$HOME/.cargo/bin" ];
   
-  home.packages = with pkgs; [
-    adwaita-icon-theme
-    adw-gtk3 
-    libsForQt5.qt5ct      
-    tmux
-    qt6Packages.qt6ct
-  ];
+home.packages = with pkgs; [
+  adwaita-icon-theme
+  adw-gtk3
+  libsForQt5.qt5ct
+  tmux
+  qt6Packages.qt6ct
+
+  (writeShellScriptBin "musicdl" ''
+    if [ -z "$1" ]; then
+      echo "usage: musicdl <url>" >&2
+      exit 1
+    fi
+    ${curl}/bin/curl -s -X POST https://musicdl.mahiru.dev/download \
+      -H 'Content-Type: application/json' \
+      -d "{\"url\": \"$1\"}" | ${jq}/bin/jq -r '.status, .stderr'
+  '')
+];
   home.pointerCursor = {
     gtk.enable = true;
     x11.enable = true;
