@@ -53,6 +53,11 @@ home.packages = with pkgs; [
     }
   '';
   
+  programs.atuin = {
+  enable = true;
+  enableZshIntegration = true;
+};
+
   home.sessionVariables = {};
   services.easyeffects.enable = true;  
   gtk = {
