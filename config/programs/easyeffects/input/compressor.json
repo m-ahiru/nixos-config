@@ -1,7 +1,7 @@
 {
     "input": {
         "bass_enhancer#0": {
-            "amount": 7.5,
+            "amount": 9.5,
             "blend": 0.0,
             "bypass": false,
             "floor": 20.0,
@@ -23,7 +23,7 @@
             "input-gain": 0.0,
             "input-to-link": 0.0,
             "input-to-sidechain": 0.0,
-            "knee": 6.0,
+            "knee": 0.0,
             "link-to-input": 0.0,
             "link-to-sidechain": 0.0,
             "lpf-frequency": 20000.0,
@@ -31,7 +31,7 @@
             "makeup": 3.0,
             "mode": "Downward",
             "output-gain": 0.0,
-            "ratio": 4,
+            "ratio": 2.5,
             "release": 90.0,
             "release-threshold": -80.01,
             "sidechain": {
@@ -46,7 +46,7 @@
             "sidechain-to-input": 0.0,
             "sidechain-to-link": 0.0,
             "stereo-split": false,
-            "threshold": -25.0,
+            "threshold": -15.0,
             "wet": 0.0
         },
         "equalizer#0": {
