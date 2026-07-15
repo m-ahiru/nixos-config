@@ -120,6 +120,12 @@
   users.defaultUserShell = pkgs.zsh;
   system.userActivationScripts.zshrc = "touch .zshrc";
 
+systemd.user.services = {
+  pipewire.restartIfChanged = false;
+  wireplumber.restartIfChanged = false;
+  pipewire-pulse.restartIfChanged = false;
+};
+
 security.wrappers.bwrap = {
   owner = "root";
   group = "root";
