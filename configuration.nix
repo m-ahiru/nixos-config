@@ -186,6 +186,9 @@ security.wrappers.bwrap = {
   services.mullvad-vpn.enable = true;
   services.mullvad-vpn.package = pkgs.mullvad-vpn;
 
+  #GoXLR-Utility
+  services.goxlr-utility.enable = true;
+
 
   # Enable the GNOME Desktop Environment.
   services.displayManager.gdm.enable = true;
