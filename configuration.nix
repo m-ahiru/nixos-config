@@ -239,27 +239,31 @@ programs.hyprland = {
     subpixel.rgba = "rgb"; 
   };
 
-  # Flatpak
-  services.flatpak = {
-    enable = true;
-    
-    remotes = [{
-      name = "flathub";
-      location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-    }];
-    
-    packages = [
-      "io.github.victoralvesf.aonsoku"
-      "it.mijorus.gearlever"
-    ];
-    
-    uninstallUnmanaged = true;
-    
-    update.auto = {
-      enable = true;
-      onCalendar = "weekly";
-    };
+# Flatpak
+services.flatpak = {
+  enable = true;
+
+  remotes = [{
+    name = "flathub";
+    location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+  }];
+
+  packages = [
+    "io.github.victoralvesf.aonsoku"
+    "it.mijorus.gearlever"
+  ];
+
+  overrides."io.github.victoralvesf.aonsoku".Environment = {
+    "PULSE_PROP_application.name" = "Aonsoku";
   };
+
+  uninstallUnmanaged = true;
+
+  update.auto = {
+    enable = true;
+    onCalendar = "weekly";
+  };
+};
 
 
   # Environment Variables
