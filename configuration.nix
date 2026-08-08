@@ -39,6 +39,7 @@
     wine
     taskwarrior3
     tty-clock
+    esptool
     ffmpegthumbnailer
     inotify-tools
     gst_all_1.gst-plugins-bad

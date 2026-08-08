@@ -25,6 +25,7 @@
       whatsapp = "setsid chromium --app=https://web.whatsapp.com --class WhatsApp >/dev/null 2>&1 &";
       soundcloud = "setsid chromium --app=https://soundcloud.com --class Soundcloud >/dev/null 2>&1 &";
       ssh = "TERM=xterm-256color ssh";
+      fixmatugen = "matugen image /home/mahiru/Pictures/Wallpapers/fix.jpg";
     };
 
     oh-my-zsh = {
