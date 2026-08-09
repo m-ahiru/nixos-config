@@ -26,6 +26,12 @@
     unstable.protonplus
     blender
     pkgs.android-tools
+    (pkgs.writeShellScriptBin "ai" ''
+  exec ${pkgs.llama-cpp-vulkan}/bin/llama-server \
+    -hf unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M \
+    --device Vulkan0 -ngl 99 --n-cpu-moe 20 \
+    -c 8192 --host 127.0.0.1 --port 8080 "$@"
+'')
     protonup-qt
     linux-wallpaperengine
     ryubing
