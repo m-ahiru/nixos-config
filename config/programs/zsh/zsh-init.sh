@@ -234,7 +234,7 @@ nixos-cd() {
 }
 zle -N nixos-cd
 bindkey '^G' nixos-cd
-ncommit() {
+fpush() {
   builtin cd /etc/nixos
   sudo git add . &&
   sudo git commit -m "${1:-update}" &&
