@@ -17,12 +17,14 @@ in
       nil
       nixpkgs-fmt
     ];
-    plugins = with nvimPkgs.vimPlugins; [
+plugins = with nvimPkgs.vimPlugins; [
       catppuccin-nvim
       nvim-web-devicons
       alpha-nvim
       plenary-nvim
       nui-nvim
+      noice-nvim
+      nvim-notify
       searchbox-nvim
       nvim-treesitter.withAllGrammars 
       lualine-nvim

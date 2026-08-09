@@ -32,7 +32,8 @@ _G.reload_matugen_colors = function()
   vim.schedule(function()
     local matugen_path = vim.fn.stdpath("config") .. "/matugen_colors.lua"
     local overrides = {}
-    
+    local mg = {}   -- raw matugen colors, used for notify background
+
     if vim.fn.filereadable(matugen_path) == 1 then
       -- loadfile is safer than dofile here as it compiles the chunk without executing it immediately
       local chunk = loadfile(matugen_path)
@@ -41,6 +42,7 @@ _G.reload_matugen_colors = function()
         if type(colors) == "table" then
           -- Cover both bases: 'all' and the specific 'mocha' flavour
           overrides = { all = colors, mocha = colors }
+          mg = colors
         end
       end
     end
@@ -69,7 +71,8 @@ _G.reload_matugen_colors = function()
         gitsigns = true,
         nvimtree = true,
         treesitter = true,
-        bufferline = true, 
+        bufferline = true,
+        noice = true,
         telescope = { enabled = true },
         indent_blankline = { enabled = true },
         native_lsp = {
@@ -86,6 +89,15 @@ _G.reload_matugen_colors = function()
     
     -- Re-apply the colorscheme
     vim.cmd("colorscheme catppuccin")
+
+    -- Notify background dynamically from matugen (base = surface).
+    -- Fallback chain guards against a missing key so no warning/crash occurs.
+    local ok_notify, notify = pcall(require, "notify")
+    if ok_notify then
+      notify.setup({
+        background_colour = mg.base or mg.mantle or mg.crust or "#1e1e2e",
+      })
+    end
 
     -- Reload lualine dynamically (safely updates without module clearing)
     local ok_lualine, lualine = pcall(require, "lualine")
@@ -128,14 +140,25 @@ require('gitsigns').setup()
 require('nvim-autopairs').setup({})
 require('Comment').setup()
 require('which-key').setup()
+
+-- NOICE: zentrierte Cmdline + Suche, LSP-Popups, Notifications
+require("noice").setup({
+  presets = {
+    bottom_search = false,        -- Suche mittig statt unten
+    command_palette = true,       -- : + Popupmenu zusammen zentriert
+    long_message_to_split = true, -- lange Messages in Split
+    lsp_doc_border = true,        -- Border um Hover/Signature
+  },
+})
+
 local alpha = require('alpha')
 local dashboard = require('alpha.themes.dashboard')
 
 dashboard.section.buttons.val = {
   dashboard.button('f', '󰱼 ❯ Find File',     '<cmd>Telescope find_files<cr>'),
   dashboard.button('r', '󱧶 ❯ Recent Files',   '<cmd>Telescope oldfiles<cr>'),
-  dashboard.button('n', ' ❯ NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
-  dashboard.button('t', ' ❯ New File', function()
+  dashboard.button('n', ' ❯ NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
+  dashboard.button('t', ' ❯ New File', function()
   vim.ui.input({ prompt = 'New file: ', default = vim.fn.expand('~/') }, function(input)
     if input and input ~= '' then
       -- mkdir -p für alle parent directories
@@ -209,8 +232,10 @@ local luasnip = require 'luasnip'
  
 require("luasnip.loaders.from_vscode").lazy_load()
 
-vim.keymap.set('n', '/', ':SearchBoxIncSearch<CR>', { desc = 'Search' })
-vim.keymap.set('n', '?', ':SearchBoxIncSearch reverse=true<CR>', { desc = 'Search reverse' })
+-- NOICE übernimmt jetzt / und ? als zentriertes Popup.
+-- Die alten searchbox-Mappings sind daher deaktiviert:
+-- vim.keymap.set('n', '/', ':SearchBoxIncSearch<CR>', { desc = 'Search' })
+-- vim.keymap.set('n', '?', ':SearchBoxIncSearch reverse=true<CR>', { desc = 'Search reverse' })
 vim.keymap.set('n', '<leader>h', '<cmd>Alpha<cr>', { desc = 'Home Screen' })
 
 -- Terminal toggle

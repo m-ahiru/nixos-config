@@ -226,3 +226,17 @@ stsetup() {
 fetch
 # Reload tmux colors after matugen updates
 [ -n "$TMUX" ] && /etc/nixos/config/programs/zsh/Scripts/tmux-colors.sh
+nixos-cd() {
+  builtin cd /etc/nixos
+  zle -I          # zle invalidieren, damit externe Ausgabe sauber ist
+  ls
+  zle reset-prompt
+}
+zle -N nixos-cd
+bindkey '^G' nixos-cd
+ncommit() {
+  builtin cd /etc/nixos
+  sudo git add . &&
+  sudo git commit -m "${1:-update}" &&
+  sudo git push
+}
