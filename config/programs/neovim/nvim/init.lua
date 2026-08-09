@@ -149,6 +149,12 @@ require("noice").setup({
     long_message_to_split = true, -- lange Messages in Split
     lsp_doc_border = true,        -- Border um Hover/Signature
   },
+  cmdline = {
+    format = {
+      search_down = { icon = "" },
+      search_up   = { icon = "" },
+    },
+  },
 })
 
 local alpha = require('alpha')
@@ -157,8 +163,8 @@ local dashboard = require('alpha.themes.dashboard')
 dashboard.section.buttons.val = {
   dashboard.button('f', '󰱼 ❯ Find File',     '<cmd>Telescope find_files<cr>'),
   dashboard.button('r', '󱧶 ❯ Recent Files',   '<cmd>Telescope oldfiles<cr>'),
-  dashboard.button('n', ' ❯ NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
-  dashboard.button('t', ' ❯ New File', function()
+  dashboard.button('n', '  ❯ NixOS Config',   '<cmd>Telescope find_files cwd=/etc/nixos<cr>'),
+  dashboard.button('t', '  ❯ New File', function()
   vim.ui.input({ prompt = 'New file: ', default = vim.fn.expand('~/') }, function(input)
     if input and input ~= '' then
       -- mkdir -p für alle parent directories
@@ -170,19 +176,21 @@ end),
   dashboard.button('q', '󰱝 ❯ Quit',           '<cmd>qa<cr>'),
 }
 
-    dashboard.section.header.val = {
-      [[ ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣀⣀⣀⠀⡀⢀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ]],
-      [[ ⣶⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⣽⠃⠀⠀⠀⢼⠻⣿⣿⣟⣿⣿⣿⣿⣶⣶⣶⣶⣤⣤⣤⣤⣤ ]],
-      [[ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏⠀⠀⠛⡶⢶⢺⠁⠀⠈⢿⣿⣿⣿⣿⣿⣿⣏⣿⣿⣿⣿⣿⣿⣿ ]],
-      [[ ⣯⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⣤⠀⣀⣠⡛⣣⡀⠀⠈⢿⣿⣿⣻⣏⣿⣿⣿⣿⣿⣿⣟⣿⠿ ]],
-      [[ ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⣳⣶⣿⣿⣷⣾⠱⠀⠀⠊⢿⠿⠿⢛⣽⣿⡿⢿⣿⣟⠿⠿⠿ ]],
-      [[ ⠉⠉⠉⠛⠛⠛⠋⠛⠛⠛⣧⠀⡀⠀⠀⢿⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠅⢀⢀⡀ ]],
-      [[ ⠔⠄⢀⡀⠀⠀⠀⠄⠐⠸⠿⡀⠀⠀⠀⢘⣿⢷⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠰⣠⣇ ]],
-      [[ ⣷⣆⣴⣮⢻⡲⡲⠀⠁⠀⠀⠀⠀⠀⠀⠹⡿⠘⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣀⡘⢷⣏ ]],
-      [[ ⣿⣿⣿⣗⠿⢈⠁⡀⠀⠁⠀⠀⠀⠀⠀⠀⠉⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢀⠄⠀⠄⠈⢿⣮⢿ ]],
-      [[ ⣿⣟⡿⣾⠀⠀⠀⠀⠀⠀⠀⢀⡤⠄⠀⠀⠀⠀⠸⠁⢠⣦⣤⢀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠀⠈⣿⠀ ]],
-      [[ ⣿⣿⠏⠁⢀⡇⠀⠀⠀⠀⠀⠀⡄⠀⠀⠀⠘⡏⣷⣵⡻⠃⠄⢴⣆⠀⠀⠀⠀⠀⠀⠀⠰⠀⣆⣷⣿ ]],
-      [[ ⣿⡿⣻⠗⠀⢠⠀⠀⠀⠀⠀⠃⠀⠀⠀⠀⢠⣤⣄⢰⣶⢯⣤⡈⠋⠀⠀⠀⠀⠀⠀⠀⠀⠆⠀⣿⣼ ]],
+dashboard.section.header.val = {
+      [[ ⠀⠀⣠⣴⣶⣶⣶⣶⣤⡀⢀⣀⠤⠠⠠⠀⠀⠀⠒⠠⠄⠤⠤⠠⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀ ]],
+      [[ ⢠⣾⣿⣿⣿⣿⡿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠁⠒⠄⡀⠀⠀⠀ ]],
+      [[ ⢻⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠲⡀⠀ ]],
+      [[ ⠀⢽⣿⣿⡎⠠⠂⠀⡀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⡄ ]],
+      [[ ⠀⠀⠀⢹⣔⢖⢼⢄⢡⡌⡅⠀⢀⡾⠀⠁⠈⠀⠀⠀⠀⠻⣄⠀⢠⠀⠀⠀⠀⠀⠀⠀⠀⡇ ]],
+      [[ ⠀⠀⠀⢸⣼⢿⢻⢔⠴⠁⣿⡀⣾⢁⣠⣀⣀⣀⣀⣁⣀⣀⣽⢀⢸⣇⠀⠀⠀⠀⠀⠀⢸⡁ ]],
+      [[ ⠀⠀⠀⠀⢻⣿⣿⠛⣍⣭⣥⣄⣥⣍⠁⠀⠀⠀⠀⠀⠈⣥⣴⣥⣤⣭⣭⡋⠛⡶⠒⠂⣌⡇ ]],
+      [[ ⠀⠀⠀⠀⢠⣿⣿⡆⣟⠿⣿⣿⣿⣟⠧⠀⠀⠀⠀⠀⢿⠿⠿⣿⣿⣿⣾⣧⠀⡇⡫⢺⠉⠀ ]],
+      [[ ⠀⠀⠀⠀⢸⢝⢿⡇⠛⢷⣿⣿⣿⣿⠅⠀⠀⠀⠀⠀⠈⣷⣾⣿⣿⣿⠏⠁⠀⣷⠀⣼⠁⠀ ]],
+      [[ ⠀⠀⠀⠀⢈⢿⣿⠿⢄⠀⠉⠉⠉⠀⠀⠠⢄⣀⣀⠄⠀⠀⠈⠉⠉⠀⠀⣀⠜⣇⢰⣇⠀⠀ ]],
+      [[ ⠀⠀⠀⠀⠛⠿⠁⠀⠀⠉⠑⣲⣦⡤⣤⣠⣀⣀⣀⣀⣠⣠⠤⣤⣶⣎⡁⠀⠀⠐⠓⠋⠀⠀ ]],
+      [[ ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣦⣜⣤⢾⡾⣅⢔⣶⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀⠀ ]],
+      [[ ⠀⠀⠀⠀⠀⠀⣀⡶⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⢿⣿⣿⣿⣿⣿⣿⣿⠿⢋⣷⡄⠀⠀⠀ ]],
+      [[ ⠀⠀⠀⠀⠀⠀⠑⠛⠒⠂⠉⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠓⠚⠋⠉⠀⠀⠀⠀ ]],
     }
 
 
