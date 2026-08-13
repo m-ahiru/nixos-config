@@ -24,10 +24,10 @@
    Höher = deckender, niedriger = transparenter.
    ========================================================================== */
 :root {
-  --alpha-toolbar:        color-mix(in srgb, var(--bg-base) 55%, transparent);
-  --alpha-surface:        color-mix(in srgb, var(--bg-surface) 78%, transparent);
-  --alpha-surface-hover:  color-mix(in srgb, var(--bg-surface-hover) 85%, transparent);
-  --alpha-surface-active: color-mix(in srgb, var(--bg-surface-active) 88%, transparent);
+  --alpha-toolbar:        color-mix(in srgb, var(--bg-base) 30%, transparent);
+  --alpha-surface:        color-mix(in srgb, var(--bg-surface) 50%, transparent);
+  --alpha-surface-hover:  color-mix(in srgb, var(--bg-surface-hover) 60%, transparent);
+  --alpha-surface-active: color-mix(in srgb, var(--bg-surface-active) 65%, transparent);
 }
 
 
