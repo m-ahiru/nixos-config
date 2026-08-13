@@ -1,3 +1,10 @@
 @import url("/home/mahiru/.config/zen/0qaddgqk.Default%20Profile/chrome/matugen-searxng.css");
 @import url("/home/mahiru/.config/zen/0qaddgqk.Default%20Profile/chrome/matugen-github.css");
 @import url("/home/mahiru/.config/zen/0qaddgqk.Default%20Profile/chrome/matugen-youtube.css");
+
+@-moz-document domain("search.mahiru.dev") {
+  #search_header {
+    background: transparent !important;
+    border-bottom: none !important;
+  }
+}
