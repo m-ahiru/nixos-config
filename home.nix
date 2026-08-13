@@ -37,9 +37,9 @@ home.packages = with pkgs; [
   home.pointerCursor = {
     gtk.enable = true;
     x11.enable = true;
-    name = "Bibata-Modern-Classic";
-    size = 24;
-    package = pkgs.bibata-cursors;
+    name = "Vimix-cursors";
+    size = 32;
+    package = pkgs.vimix-cursors;
   };
   dconf.settings = {
     "org/gnome/desktop/interface" = {

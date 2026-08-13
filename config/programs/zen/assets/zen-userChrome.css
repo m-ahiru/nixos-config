@@ -1,0 +1,212 @@
+/* ==========================================================================
+   zen-userChrome.css — matugen → Zen Browser  (TRANSPARENT)
+   --------------------------------------------------------------------------
+   Damit Transparenz greift, sind ZUSÄTZLICH nötig (nicht Teil dieses Files):
+
+   about:config:
+     widget.transparent-windows             = true
+     browser.tabs.allow_transparent_browser = true
+     zen.theme.acrylic-elements             = true   (falls vorhanden)
+     devtools.chrome.enabled                = true   (nur fürs Debuggen)
+
+   Hyprland:
+     windowrulev2 = opacity 0.9 0.9, class:^(zen.*)$
+     decoration { blur { enabled = true } }
+   ========================================================================== */
+
+/* matugen-generierte Farben. Absoluter Pfad, Leerzeichen als %20. */
+@import url("/home/mahiru/.config/zen/0qaddgqk.Default%20Profile/chrome/matugen.css");
+
+
+/* ==========================================================================
+   TINT-STEUERUNG  ← hier drehen
+   Prozent = Deckkraft der Fläche. Rest ist Durchsicht (Blur/Wallpaper).
+   Höher = deckender, niedriger = transparenter.
+   ========================================================================== */
+:root {
+  --alpha-toolbar:        color-mix(in srgb, var(--bg-base) 55%, transparent);
+  --alpha-surface:        color-mix(in srgb, var(--bg-surface) 78%, transparent);
+  --alpha-surface-hover:  color-mix(in srgb, var(--bg-surface-hover) 85%, transparent);
+  --alpha-surface-active: color-mix(in srgb, var(--bg-surface-active) 88%, transparent);
+}
+
+
+/* ==========================================================================
+   TOKEN-MAPPING
+   Oben: Zen-eigene Variablen (können zwischen Versionen umbenannt werden).
+   Unten: stabile Firefox/lwt-Tokens als Fallback.
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+
+  /* ---- Zen native tokens ---- */
+  --zen-primary-color: var(--accent) !important;
+  --zen-colors-primary: var(--accent) !important;
+  --zen-colors-secondary: var(--alpha-surface) !important;
+  --zen-colors-tertiary: var(--alpha-surface-hover) !important;
+  --zen-colors-border: var(--border-color) !important;
+
+  /* Basis + Gaps komplett durchsichtig -> Hyprland-Blur kommt durch */
+  --zen-main-browser-background: transparent !important;
+  --zen-main-browser-background-toolbar: transparent !important;
+  --zen-themed-toolbar-bg-transparent: transparent !important;
+  --zen-toolbar-element-bg: var(--alpha-surface) !important;
+
+  /* ---- Firefox/lwt fallback tokens (versionsstabil) ---- */
+  /* WICHTIG: base/toolbar auf transparent, sonst malt Firefox opak drüber */
+  --lwt-accent-color: transparent !important;
+  --lwt-text-color: var(--text-main) !important;
+  --toolbar-bgcolor: transparent !important;
+  --toolbar-color: var(--text-main) !important;
+  --toolbar-field-background-color: var(--alpha-surface) !important;
+  --toolbar-field-focus-background-color: var(--alpha-surface-hover) !important;
+  --toolbar-field-color: var(--text-main) !important;
+  --toolbar-field-focus-color: var(--text-main) !important;
+  --tab-selected-bgcolor: var(--alpha-surface-active) !important;
+
+  /* Popups/Menüs bleiben deckend -> Lesbarkeit */
+  --arrowpanel-background: var(--bg-surface) !important;
+  --arrowpanel-color: var(--text-main) !important;
+  --toolbarseparator-color: var(--border-color) !important;
+}
+
+
+/* ==========================================================================
+   HAUPTFLÄCHEN
+   Strukturelle Container durchsichtig (Blur-Basis), Leisten leicht getönt.
+   ========================================================================== */
+
+/* Fenster-Basis + Content-Wrapper: komplett durchsichtig */
+#zen-main-app-wrapper,
+#browser,
+#navigator-toolbox {
+  background-color: transparent !important;
+}
+
+/* Leisten: leichter Tint, damit Bedienelemente lesbar bleiben */
+#nav-bar,
+#TabsToolbar,
+#PersonalToolbar {
+  background-color: var(--alpha-toolbar) !important;
+}
+
+/* Zen Sidebar / vertikale Tab-Leiste: leichter Tint */
+#zen-tabbox-wrapper,
+#zen-sidebar-top-buttons,
+#vertical-tabs,
+.zen-sidebar-tabs-container {
+  background-color: var(--alpha-toolbar) !important;
+}
+
+
+/* ==========================================================================
+   TABS
+   ========================================================================== */
+
+/* aktiver Tab */
+.tabbrowser-tab[selected] .tab-background,
+.tabbrowser-tab[visuallyselected] .tab-background {
+  background-color: var(--alpha-surface-active) !important;
+}
+
+/* Hover auf inaktivem Tab */
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  background-color: var(--alpha-surface-hover) !important;
+}
+
+/* inaktiver Tab-Text gedämpft */
+.tabbrowser-tab:not([selected]) .tab-label {
+  color: var(--text-muted) !important;
+}
+.tabbrowser-tab[selected] .tab-label {
+  color: var(--text-main) !important;
+}
+
+
+/* ==========================================================================
+   URL BAR
+   ========================================================================== */
+
+#urlbar-background {
+  background-color: var(--alpha-surface) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+#urlbar[focused="true"] > #urlbar-background {
+  background-color: var(--alpha-surface-hover) !important;
+  border-color: var(--accent) !important;
+}
+
+#urlbar-input,
+#urlbar-input::placeholder {
+  color: var(--text-main) !important;
+}
+
+/* Autocomplete-Dropdown: DECKEND, sonst unlesbar über Blur */
+.urlbarView {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+}
+.urlbarView-row:hover > .urlbarView-row-inner,
+.urlbarView-row[selected] > .urlbarView-row-inner {
+  background-color: var(--bg-surface-hover) !important;
+}
+.urlbarView-row .urlbarView-secondary,
+.urlbarView-row .urlbarView-url {
+  color: var(--text-muted) !important;
+}
+
+
+/* ==========================================================================
+   POPUPS / MENÜS / TRENNER  (deckend, Lesbarkeit)
+   ========================================================================== */
+
+menupopup,
+panel,
+.panel-arrowcontent {
+  --panel-background: var(--bg-surface) !important;
+  --panel-color: var(--text-main) !important;
+  --panel-border-color: var(--border-color) !important;
+}
+
+menuseparator,
+toolbarseparator,
+.toolbar-items-separator {
+  background-color: var(--border-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Hover in Menüs */
+menuitem:hover,
+.subviewbutton:hover,
+toolbarbutton:hover {
+  background-color: var(--alpha-surface-hover) !important;
+}
+
+
+/* ==========================================================================
+   AKZENT — Findbar-Highlight, Fokus-Ringe, aktive Indikatoren
+   ========================================================================== */
+
+#nav-bar,
+#urlbar {
+  --focus-outline-color: var(--accent) !important;
+}
+
+.tab-context-line,
+.identity-color-blue {
+  background-color: var(--accent) !important;
+}
+
+
+/* ==========================================================================
+   CONTENT-AREA — hellen Kasten hinter der Webseite entfernen
+   (kam mit neuerem Zen-Update dazu; greift nur mit
+    browser.tabs.allow_transparent_browser = true)
+   ========================================================================== */
+
+:root:not([inDOMFullscreen="true"]):not([chromehidden~="location"]):not([chromehidden~="toolbar"])
+  #tabbrowser-tabbox #tabbrowser-tabpanels .browserSidebarContainer
+  browser[transparent="true"] {
+  background: none !important;
+}

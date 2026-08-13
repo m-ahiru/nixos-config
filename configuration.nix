@@ -21,7 +21,7 @@
   environment.systemPackages = with pkgs; [
     wget 
     file-roller
-    (inputs.nixpkgs-librewolf.legacyPackages.${pkgs.system}.librewolf)
+#    (inputs.nixpkgs-librewolf.legacyPackages.${pkgs.system}.librewolf)
     protontricks
     unstable.protonplus
     blender
@@ -37,6 +37,7 @@
     ryubing
     icu
     yt-dlp
+    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
     rustup
     audacity
     gcc

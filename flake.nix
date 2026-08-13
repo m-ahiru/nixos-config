@@ -12,6 +12,7 @@
     nixpkgs-librewolf.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-neovim.url = "github:NixOS/nixpkgs/e8210c649915deed7080033cdbabcc19e40bb899";
+    zen-browser.url = "github:youwen5/zen-browser-flake";
     
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";

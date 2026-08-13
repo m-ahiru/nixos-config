@@ -41,6 +41,10 @@ output_path = "~/.config/nvim/matugen_colors.lua"
 input_path = "~/.config/matugen/templates/cava-colors.ini.template"
 output_path = "~/.config/cava/colors"
 
+[templates.zen]
+input_path = "~/.config/matugen/templates/firefox.css"
+output_path = "~/.config/zen/0qaddgqk.Default Profile/chrome/matugen.css"
+
 [templates.swayosd]
 input_path = "~/.config/matugen/templates/swayosd.css.template"
 output_path = "~/.config/swayosd/style.css"
