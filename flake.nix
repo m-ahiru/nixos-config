@@ -19,7 +19,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     
-    nix-flatpak.url = "github:gmodena/nix-flatpak/latest";
+    nix-flatpak.url = "github:gmodena/nix-flatpak/v0.6.0";
   };
 
 outputs = { self, nixpkgs, nixpkgs-unstable, nixpkgs-hyprland, nixpkgs-quickshell, home-manager, nix-flatpak, ... }@inputs:
