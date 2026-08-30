@@ -26,6 +26,7 @@
     unstable.protonplus
     blender
     pkgs.android-tools
+    runelite
     (pkgs.writeShellScriptBin "ai" ''
   exec ${pkgs.llama-cpp-vulkan}/bin/llama-server \
     -hf unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M \
