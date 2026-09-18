@@ -27,6 +27,7 @@
     blender
     pkgs.android-tools
     runelite
+    lutris
     (pkgs.writeShellScriptBin "ai" ''
   exec ${pkgs.llama-cpp-vulkan}/bin/llama-server \
     -hf unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M \
@@ -57,7 +58,7 @@
     adwsteamgtk
     mesa-demos
     vulkan-tools
-    discord
+    unstable.discord
     losslesscut-bin
     file
     pipes 
@@ -134,6 +135,10 @@ systemd.user.services = {
   wireplumber.restartIfChanged = false;
   pipewire-pulse.restartIfChanged = false;
 };
+
+services.udev.extraRules = ''
+  SUBSYSTEM=="hidraw", ATTRS{idVendor}=="33e4", MODE="0666"
+'';
 
 security.wrappers.bwrap = {
   owner = "root";

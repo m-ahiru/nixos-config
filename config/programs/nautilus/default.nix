@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   scripts = "/etc/nixos/config/programs/zsh/Scripts";
 in
@@ -37,6 +37,18 @@ in
       IFS=$'\n'
       for f in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS; do
         ${scripts}/crop43.sh "$f"
+      done
+    '';
+  };
+
+    home.file.".local/share/nautilus/scripts/Crop 4:3 + Compress 15MB" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      export PATH="${pkgs.ffmpeg}/bin:$PATH"
+      IFS=$'\n'
+      for f in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS; do
+        ${scripts}/crop43_resize.sh "$f" 15
       done
     '';
   };

@@ -58,6 +58,11 @@ home.packages = with pkgs; [
   enableZshIntegration = true;
 };
 
+programs.direnv = {
+  enable = true;
+  nix-direnv.enable = true;
+};
+
   home.sessionVariables = {};
   services.easyeffects.enable = true;  
   gtk = {
