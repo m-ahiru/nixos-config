@@ -1,4 +1,11 @@
 { config, pkgs, lib, inputs, system, ... }:
+let
+  # Same nixpkgs as the pinned Hyprland -> plugin is always built against the exact running version
+  hyprlandPkgs = inputs.nixpkgs-hyprland.legacyPackages.${system};
+  cursortrail = hyprlandPkgs.callPackage ./plugins/cursortrail {
+    inherit (hyprlandPkgs.hyprlandPlugins) mkHyprlandPlugin;
+  };
+in
 {
   imports = [
     ./hypridle.nix 
@@ -52,5 +59,11 @@ wayland.windowManager.hyprland = {
   ];
   home.sessionVariables.NIXOS_OZONE_WL = "1";
   home.file.".config/hypr/scripts".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/scripts";
+  # Store paths of our plugins, read by config/cursortrail.lua via require("nix-plugins")
+  home.file.".config/hypr/nix-plugins.lua".text = ''
+    return {
+      cursortrail = "${cursortrail}/lib/libcursortrail.so",
+    }
+  '';
   home.file.".config/hypr/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/config";
 }
