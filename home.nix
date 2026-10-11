@@ -22,6 +22,7 @@ home.packages = with pkgs; [
   adw-gtk3
   libsForQt5.qt5ct
   tmux
+  gh
   qt6Packages.qt6ct
 
   (writeShellScriptBin "musicdl" ''
