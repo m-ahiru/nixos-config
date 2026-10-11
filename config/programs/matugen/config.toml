@@ -85,7 +85,7 @@ post_hook = "hyprctl reload"
 [templates.steam]
 input_path = "~/.config/matugen/templates/steam.css"
 output_path = "~/.config/AdwSteamGtk/custom.css"
-post_hook = "adwaita-steam-gtk -i"
+post_hook = "adwaita-steam-gtk -i -o 'custom_css:true'"
 
 [templates.obs]
 input_path = "~/.config/matugen/templates/matugen.obt"

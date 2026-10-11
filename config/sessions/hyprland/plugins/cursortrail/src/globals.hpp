@@ -9,6 +9,9 @@
 
 inline HANDLE PHANDLE = nullptr;
 
+// number of cursor_style shapes (CURSORSHAPE_LIB in Shaders.hpp)
+inline constexpr int CURSOR_STYLE_COUNT = 16;
+
 // All values live under plugin.cursortrail.* (Lua) / plugin:cursortrail:* (hyprlang).
 struct SCursorTrailConfig {
     SP<Config::Values::CBoolValue>   enabled;
@@ -36,6 +39,7 @@ struct SCursorTrailConfig {
     SP<Config::Values::CFloatValue>  cursorTextHeight;   // I-beam height, logical px
     SP<Config::Values::CFloatValue>  cursorTextWidth;    // I-beam bar thickness, logical px
     SP<Config::Values::CBoolValue>   cursorInFullscreen; // circle also over fullscreen windows (trail stays hidden there)
+    SP<Config::Values::CIntValue>    cursorStyle;        // shape, 0 .. CURSOR_STYLE_COUNT-1 (see README)
     SP<Config::Values::CFloatValue>  cursorSize;         // outer radius of the ring, logical px
     SP<Config::Values::CFloatValue>  cursorRing;         // ring thickness, logical px
     SP<Config::Values::CFloatValue>  cursorGlow;         // glow strength outside the ring

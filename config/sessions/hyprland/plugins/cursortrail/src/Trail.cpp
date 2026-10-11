@@ -38,9 +38,8 @@
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
-#include <hyprland/src/managers/PointerManager.hpp>
+#include "compat.hpp"
 #include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
 #include <hyprland/src/config/ConfigValue.hpp>
 #undef protected
@@ -54,6 +53,9 @@ using Render::GL::g_pHyprOpenGL;
 #include "globals.hpp"
 
 // ───────────────────────────── tuning constants ─────────────────────────────
+
+// the trail reaches full width this many (full) half-widths behind the cursor
+static constexpr double HEAD_RAMP_LENGTH = 1.6;
 
 static constexpr float  SPEED_SMOOTHING_S    = 0.035F; // EMA time constant for velocity
 static constexpr float  SPEED_REFERENCE      = 1000.F; // px/s that adds 1x intensity
@@ -71,9 +73,9 @@ static constexpr int    CTRL_SMOOTH_PASSES   = 2;   // [1 2 1]/4 passes over int
 
 
 // uniform slots
-enum : uint8_t { TU_PROJ = 0, TU_FULLSIZE, TU_PTS, TU_COUNT, TU_HEAD, TU_TAIL, TU_OPACITY, TU_GLOW, TU_COREFRAC, TU_HOT, TU_ADDITIVE };
-enum : uint8_t { CU_PROJ = 0, CU_FULLSIZE, CU_COLOR, CU_CENTERCOLOR, CU_OUTER, CU_RADIUS, CU_RING, CU_GLOW, CU_GLOWSIZE, CU_OUTLINE, CU_SHADOW, CU_SHADOWSIZE };
-enum : uint8_t { XU_PROJ = 0, XU_FULLSIZE, XU_OUTER, XU_RADIUS, XU_CONTRAST };
+enum : uint8_t { TU_PROJ = 0, TU_FULLSIZE, TU_PTS, TU_COUNT, TU_HEAD, TU_TAIL, TU_OPACITY, TU_GLOW, TU_CORER, TU_HOT, TU_ADDITIVE };
+enum : uint8_t { CU_PROJ = 0, CU_FULLSIZE, CU_COLOR, CU_CENTERCOLOR, CU_OUTER, CU_RADIUS, CU_RING, CU_GLOW, CU_GLOWSIZE, CU_OUTLINE, CU_SHADOW, CU_SHADOWSIZE, CU_STYLE };
+enum : uint8_t { XU_PROJ = 0, XU_FULLSIZE, XU_OUTER, XU_RADIUS, XU_CONTRAST, XU_RING, XU_STYLE };
 enum : uint8_t { IU_PROJ = 0, IU_FULLSIZE, IU_COLOR, IU_CENTERCOLOR, IU_OUTER, IU_BAR, IU_SERIF, IU_RING, IU_GLOW, IU_GLOWSIZE, IU_SHADOW, IU_SHADOWSIZE, IU_OUTLINE };
 
 // ─────────────────────────────── helpers ────────────────────────────────────
@@ -169,11 +171,11 @@ static std::array<float, 3> toRenderRGB(Config::INTEGER hex, bool boost = false)
 // ─────────────────────────────── input ──────────────────────────────────────
 
 void CCursorTrail::onPointerMoved() {
-    if (!g_pPointerManager)
+    if (!CTCompat::pointer())
         return;
 
     const auto now = TrailClock::now();
-    const auto pos = g_pPointerManager->position();
+    const auto pos = CTCompat::pointer()->position();
 
     updateCursorBox();
 
@@ -192,7 +194,7 @@ void CCursorTrail::onPointerMoved() {
     // over a fullscreen game/video: no trail. The circle stays unless cursor_in_fullscreen = false,
     // in which case we also stop scheduling frames so direct scanout / game performance stay untouched.
     if (g_config.hideInFullscreen->value() && g_pCompositor) {
-        const auto mon = g_pCompositor->getMonitorFromVector(pos);
+        const auto mon = CTCompat::monitorAt(pos);
         if (fullscreenOn(mon)) {
             const bool circle = g_config.cursorEnabled->value() && g_config.cursorInFullscreen->value();
             const bool dirty  = !m_samples.empty() || !m_lastDamaged.empty();
@@ -338,7 +340,7 @@ void CCursorTrail::buildPoints(TrailClock::time_point now) {
     m_trailBox = {};
 
     prune(now);
-    if (m_samples.empty() || !g_pPointerManager || !g_config.enabled->value() || cursorHidden())
+    if (m_samples.empty() || !CTCompat::pointer() || !g_config.enabled->value() || cursorHidden())
         return;
 
     const float life = lifetimeSeconds();
@@ -352,7 +354,7 @@ void CCursorTrail::buildPoints(TrailClock::time_point now) {
     std::vector<SCtrl> ctrl;
     ctrl.reserve(m_samples.size() + 2);
 
-    ctrl.push_back({g_pPointerManager->position(), 0.F, m_samples.back().speed});
+    ctrl.push_back({CTCompat::pointer()->position(), 0.F, m_samples.back().speed});
 
     for (auto it = m_samples.rbegin(); it != m_samples.rend(); ++it) {
         const float age = secondsBetween(it->time, now) / life;
@@ -425,11 +427,11 @@ float CCursorTrail::cursorOuterRadius() const {
 }
 
 void CCursorTrail::updateCursorBox() {
-    if (!g_config.cursorEnabled->value() || !g_pPointerManager) {
+    if (!g_config.cursorEnabled->value() || !CTCompat::pointer()) {
         m_cursorBox = {};
         return;
     }
-    const auto   pos = g_pPointerManager->position();
+    const auto   pos = CTCompat::pointer()->position();
     const double r   = cursorOuterRadius();
     m_cursorBox      = CBox{pos.x - r, pos.y - r, r * 2, r * 2}.round();
 }
@@ -486,7 +488,7 @@ void CCursorTrail::flushDamage() {
 }
 
 bool CCursorTrail::fullscreenOn(PHLMONITOR monitor) const {
-    return monitor && g_config.hideInFullscreen->value() && monitor->m_activeWorkspace && monitor->m_activeWorkspace->m_hasFullscreenWindow &&
+    return monitor && g_config.hideInFullscreen->value() && CTCompat::hasFullscreen(monitor->m_activeWorkspace) &&
         !monitor->m_activeSpecialWorkspace;
 }
 
@@ -519,7 +521,7 @@ void CCursorTrail::onRenderLastMoment(PHLMONITOR monitor) {
     // or hypr-dynamic-cursors' own element). Not found = hardware cursor / cursor hidden / other monitor.
     auto&                 pass      = g_pHyprRenderer->m_renderPass;
     auto&                 elems     = pass.m_passElements;
-    const auto            cursorTex = g_pPointerManager ? g_pPointerManager->getCurrentCursorTexture() : nullptr;
+    const auto            cursorTex = CTCompat::pointer() ? CTCompat::pointer()->getCurrentCursorTexture() : nullptr;
     std::optional<size_t> cursorIdx;
 
     for (size_t i = elems.size(); i-- > 0;) {
@@ -541,9 +543,9 @@ void CCursorTrail::onRenderLastMoment(PHLMONITOR monitor) {
     // has no cursor element means the cursor is hidden (pointer locked in a game, inactive timeout, ...)
     // → no trail. With hardware cursors we can't tell this way and rely on the other checks.
     static auto PNOHW = CConfigValue<Config::INTEGER>("cursor:no_hardware_cursors");
-    if (g_pPointerManager && *PNOHW == 1) {
+    if (CTCompat::pointer() && *PNOHW == 1) {
         const CBox monLogical = {monitor->m_position, monitor->m_size};
-        if (monLogical.containsPoint(g_pPointerManager->position())) {
+        if (monLogical.containsPoint(CTCompat::pointer()->position())) {
             const bool hidden = !cursorIdx.has_value();
             if (hidden && !m_noCursorDrawn) {
                 clear();
@@ -642,8 +644,8 @@ bool CCursorTrail::ensureGL() {
         return false;
 
     m_trailProg.id    = linkProgram(CURSORCIRCLE_VERT, CURSORTRAIL_FRAG);
-    m_circleProg.id   = linkProgram(CURSORCIRCLE_VERT, CURSORCIRCLE_FRAG);
-    m_contrastProg.id = linkProgram(CURSORCIRCLE_VERT, CURSORCONTRAST_FRAG);
+    m_circleProg.id   = linkProgram(CURSORCIRCLE_VERT, (std::string{CURSORSHAPE_LIB} + CURSORCIRCLE_FRAG).c_str());
+    m_contrastProg.id = linkProgram(CURSORCIRCLE_VERT, (std::string{CURSORSHAPE_LIB} + CURSORCONTRAST_FRAG).c_str());
     m_textProg.id     = linkProgram(CURSORCIRCLE_VERT, CURSORTEXT_FRAG);
     if (!m_trailProg.id || !m_circleProg.id || !m_contrastProg.id || !m_textProg.id) {
         destroyGL();
@@ -651,11 +653,11 @@ bool CCursorTrail::ensureGL() {
         return false;
     }
 
-    for (const char* name : {"uProj", "uFullSize", "uPts", "uCount", "uHeadColor", "uTailColor", "uOpacity", "uGlow", "uCoreFrac", "uHot", "uAdditive"})
+    for (const char* name : {"uProj", "uFullSize", "uPts", "uCount", "uHeadColor", "uTailColor", "uOpacity", "uGlow", "uCoreR", "uHot", "uAdditive"})
         m_trailProg.loc.push_back(glGetUniformLocation(m_trailProg.id, name));
-    for (const char* name : {"uProj", "uFullSize", "uColor", "uCenterColor", "uOuter", "uRadius", "uRing", "uGlow", "uGlowSize", "uOutline", "uShadow", "uShadowSize"})
+    for (const char* name : {"uProj", "uFullSize", "uColor", "uCenterColor", "uOuter", "uRadius", "uRing", "uGlow", "uGlowSize", "uOutline", "uShadow", "uShadowSize", "uStyle"})
         m_circleProg.loc.push_back(glGetUniformLocation(m_circleProg.id, name));
-    for (const char* name : {"uProj", "uFullSize", "uOuter", "uRadius", "uContrast"})
+    for (const char* name : {"uProj", "uFullSize", "uOuter", "uRadius", "uContrast", "uRing", "uStyle"})
         m_contrastProg.loc.push_back(glGetUniformLocation(m_contrastProg.id, name));
     for (const char* name : {"uProj", "uFullSize", "uColor", "uCenterColor", "uOuter", "uBar", "uSerif", "uRing", "uGlow", "uGlowSize", "uShadow", "uShadowSize", "uOutline"})
         m_textProg.loc.push_back(glGetUniformLocation(m_textProg.id, name));
@@ -757,6 +759,14 @@ void CCursorTrail::drawTrail(PHLMONITOR monitor) {
     m_ptsScratch.clear();
     m_ptsScratch.reserve(n * 4);
 
+    // The head sits right under the cursor. At full width the round end of its glow would poke out
+    // in front of the cursor (and linger there after stopping), so the glow starts small and grows
+    // to full size over a short distance: with the circle it starts at the circle's size, without
+    // it at the core. The core itself keeps its width.
+    const float coreFrac   = 1.F / glowFactor();
+    const float headRadius = g_config.cursorEnabled->value() ? std::max(1.F, fval(g_config.cursorSize)) * m_clickScale * 0.85F : 0.F;
+    m_coreScratch.clear();
+
     double x1 = INFINITY, y1 = INFINITY, x2 = -INFINITY, y2 = -INFINITY;
     size_t seg = 0;
     double segStart = 0; // arc length at m_points[seg]
@@ -773,7 +783,12 @@ void CCursorTrail::drawTrail(PHLMONITOR monitor) {
 
         SPoint       p{a.pos + (b.pos - a.pos) * f, a.t + (b.t - a.t) * sc<float>(f), a.speed + (b.speed - a.speed) * sc<float>(f)};
         const auto   l = (p.pos - monitor->m_position) * scale;
-        const double r = halfWidthAt(p) * scale;
+        const double full = halfWidthAt(p);
+        const double core = full * coreFrac;
+        const double head = std::clamp<double>(headRadius, core, full);
+        const double ramp = std::clamp(target / std::max(full * HEAD_RAMP_LENGTH, 1.0), 0.0, 1.0);
+        const double r    = (head + (full - head) * ramp * ramp * (3.0 - 2.0 * ramp)) * scale; // smoothstep
+        m_coreScratch.push_back(sc<float>(core * scale));
 
         m_ptsScratch.insert(m_ptsScratch.end(), {sc<float>(l.x), sc<float>(l.y), sc<float>(r), p.t});
         x1 = std::min(x1, l.x - r), y1 = std::min(y1, l.y - r), x2 = std::max(x2, l.x + r), y2 = std::max(y2, l.y + r);
@@ -800,7 +815,7 @@ void CCursorTrail::drawTrail(PHLMONITOR monitor) {
     glUniform3f(m_trailProg[TU_TAIL], tail[0], tail[1], tail[2]);
     glUniform1f(m_trailProg[TU_OPACITY], std::clamp(fval(g_config.opacity), 0.F, 1.F));
     glUniform1f(m_trailProg[TU_GLOW], std::max(0.F, fval(g_config.glow)));
-    glUniform1f(m_trailProg[TU_COREFRAC], 1.F / glowFactor());
+    glUniform1fv(m_trailProg[TU_CORER], n, m_coreScratch.data());
     glUniform1f(m_trailProg[TU_HOT], std::clamp(fval(g_config.hotCore), 0.F, 1.F));
     glUniform1i(m_trailProg[TU_ADDITIVE], additive ? 1 : 0);
 
@@ -814,7 +829,7 @@ void CCursorTrail::drawTrail(PHLMONITOR monitor) {
 }
 
 void CCursorTrail::drawCursor(PHLMONITOR monitor) {
-    if (!monitor || !g_pPointerManager || !ensureGL() || g_pHyprRenderer->m_renderData.damage.empty())
+    if (!monitor || !CTCompat::pointer() || !ensureGL() || g_pHyprRenderer->m_renderData.damage.empty())
         return;
 
     const float    scale    = sc<float>(monitor->m_scale);
@@ -823,8 +838,9 @@ void CCursorTrail::drawCursor(PHLMONITOR monitor) {
     const float    glowSize = g_config.cursorGlow->value() > 0.F ? std::max(0.F, fval(g_config.cursorGlowSize)) : 0.F;
     const float    shadowSz = g_config.cursorShadow->value() > 0.F ? std::max(0.F, fval(g_config.cursorShadowSize)) : 0.F;
     const float    outer    = radius + std::max({glowSize, shadowSz, 3.F}) + 2.F;
+    const int      style    = std::clamp(sc<int>(g_config.cursorStyle->value()), 0, CURSOR_STYLE_COUNT - 1);
 
-    const Vector2D c = (g_pPointerManager->position() - monitor->m_position) * scale;
+    const Vector2D c = (CTCompat::pointer()->position() - monitor->m_position) * scale;
     const float    h = outer * scale;
     const float    x = sc<float>(c.x), y = sc<float>(c.y);
 
@@ -845,6 +861,7 @@ void CCursorTrail::drawCursor(PHLMONITOR monitor) {
     glUniform1f(m_circleProg[CU_OUTLINE], std::clamp(fval(g_config.cursorOutline), 0.F, 1.F));
     glUniform1f(m_circleProg[CU_SHADOW], std::clamp(fval(g_config.cursorShadow), 0.F, 1.F));
     glUniform1f(m_circleProg[CU_SHADOWSIZE], shadowSz * scale);
+    glUniform1i(m_circleProg[CU_STYLE], style);
 
     g_pHyprOpenGL->blend(true);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // solid cursor → plain premultiplied over
@@ -857,6 +874,8 @@ void CCursorTrail::drawCursor(PHLMONITOR monitor) {
         glUniform1f(m_contrastProg[XU_OUTER], h);
         glUniform1f(m_contrastProg[XU_RADIUS], radius * scale);
         glUniform1f(m_contrastProg[XU_CONTRAST], contrast);
+        glUniform1f(m_contrastProg[XU_RING], ring * scale);
+        glUniform1i(m_contrastProg[XU_STYLE], style);
         glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
         uploadAndDraw(monitor, m_contrastProg, GL_TRIANGLE_STRIP);
     }
@@ -864,7 +883,7 @@ void CCursorTrail::drawCursor(PHLMONITOR monitor) {
 
 // Styled I-beam: same colors, glow and shadow as the circle. Hotspot = center of the beam.
 void CCursorTrail::drawTextCursor(PHLMONITOR monitor) {
-    if (!monitor || !g_pPointerManager || !ensureGL() || g_pHyprRenderer->m_renderData.damage.empty())
+    if (!monitor || !CTCompat::pointer() || !ensureGL() || g_pHyprRenderer->m_renderData.damage.empty())
         return;
 
     const float    scale    = sc<float>(monitor->m_scale);
@@ -877,7 +896,7 @@ void CCursorTrail::drawTextCursor(PHLMONITOR monitor) {
     const float    shadowSz = g_config.cursorShadow->value() > 0.F ? std::max(0.F, fval(g_config.cursorShadowSize)) * 0.9F : 0.F;
     const float    outer    = halfH + std::max({glowSize, shadowSz, 3.F}) + 2.F;
 
-    const Vector2D c = (g_pPointerManager->position() - monitor->m_position) * scale;
+    const Vector2D c = (CTCompat::pointer()->position() - monitor->m_position) * scale;
     const float    h = outer * scale;
     const float    x = sc<float>(c.x), y = sc<float>(c.y);
 

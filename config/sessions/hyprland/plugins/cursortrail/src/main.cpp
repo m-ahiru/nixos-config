@@ -6,7 +6,7 @@
 #include <hyprland/src/includes.hpp>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/event/EventBus.hpp>
-#include <hyprland/src/managers/CursorManager.hpp>
+#include "compat.hpp"
 #include <hyprland/src/desktop/view/WLSurface.hpp>
 #include <hyprland/src/plugins/HookSystem.hpp>
 #include <hyprland/src/render/Renderer.hpp>
@@ -52,6 +52,7 @@ static void registerConfig() {
     g_config.cursorSize        = makeShared<CFloatValue> ("plugin:cursortrail:cursor_size",        "outer radius of the circle in px", 11.F, SFloatValueOptions{.min = 2.F, .max = 64.F});
     g_config.cursorRing        = makeShared<CFloatValue> ("plugin:cursortrail:cursor_ring",        "ring thickness in px", 4.F, SFloatValueOptions{.min = 0.5F, .max = 32.F});
     g_config.cursorGlow        = makeShared<CFloatValue> ("plugin:cursortrail:cursor_glow",        "glow outside the ring, 0 = off", 1.F, SFloatValueOptions{.min = 0.F, .max = 4.F});
+    g_config.cursorStyle       = makeShared<CIntValue>   ("plugin:cursortrail:cursor_style",       "cursor shape, see the README for previews", 0, SIntValueOptions{.min = 0, .max = CURSOR_STYLE_COUNT - 1});
     g_config.cursorGlowSize    = makeShared<CFloatValue> ("plugin:cursortrail:cursor_glow_size",   "glow reach in px", 7.F, SFloatValueOptions{.min = 0.F, .max = 48.F});
     g_config.cursorOutline     = makeShared<CFloatValue> ("plugin:cursortrail:cursor_outline",     "dark edge so it reads on white, 0..1", 0.F, SFloatValueOptions{.min = 0.F, .max = 1.F});
     g_config.cursorShadow      = makeShared<CFloatValue> ("plugin:cursortrail:cursor_shadow",      "soft dark halo behind the circle, 0..1", 0.45F, SFloatValueOptions{.min = 0.F, .max = 1.F});
@@ -66,7 +67,7 @@ static void registerConfig() {
     for (const SP<IValue>& v : std::initializer_list<SP<IValue>>{
              g_config.enabled,       g_config.lifetime,      g_config.opacity,    g_config.blend,      g_config.width,           g_config.glow,
              g_config.glowSize,      g_config.hotCore,       g_config.velocitySize, g_config.velocityIntensity, g_config.color, g_config.gradient,
-             g_config.tailColor,     g_config.hideInFullscreen, g_config.colorBoost, g_config.cursorEnabled, g_config.cursorKeepText, g_config.cursorTextDelay, g_config.cursorTextStyle, g_config.cursorTextHeight, g_config.cursorTextWidth, g_config.cursorInFullscreen, g_config.cursorSize, g_config.cursorRing,
+             g_config.tailColor,     g_config.hideInFullscreen, g_config.colorBoost, g_config.cursorEnabled, g_config.cursorKeepText, g_config.cursorTextDelay, g_config.cursorTextStyle, g_config.cursorTextHeight, g_config.cursorTextWidth, g_config.cursorInFullscreen, g_config.cursorStyle, g_config.cursorSize, g_config.cursorRing,
              g_config.cursorGlow,    g_config.cursorGlowSize, g_config.cursorOutline, g_config.cursorShadow, g_config.cursorShadowSize, g_config.cursorContrast, g_config.cursorHoverScale, g_config.cursorClickScale,
              g_config.cursorColor,   g_config.cursorCenterColor}) {
         HyprlandAPI::addConfigValueV2(PHANDLE, v);
@@ -133,10 +134,10 @@ static void hkSetCursorSurface(void* thisptr, SP<Desktop::View::CWLSurface> surf
 }
 
 static void installShapeHooks() {
-    g_setCursorFromNameHook = hookChecked(pmfAddress(&CCursorManager::setCursorFromName),
-                                          "_ZN14CCursorManager17setCursorFromNameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE", rc<void*>(&hkSetCursorFromName));
-    g_setCursorSurfaceHook  = hookChecked(pmfAddress(&CCursorManager::setCursorSurface),
-                                          "_ZN14CCursorManager16setCursorSurfaceEN9Hyprutils6Memory14CSharedPointerIN7Desktop4View10CWLSurfaceEEERKNS0_4Math8Vector2DE",
+    g_setCursorFromNameHook = hookChecked(pmfAddress(&CTCompat::CursorManager::setCursorFromName),
+                                          CTCompat::SET_CURSOR_FROM_NAME_SYM, rc<void*>(&hkSetCursorFromName));
+    g_setCursorSurfaceHook  = hookChecked(pmfAddress(&CTCompat::CursorManager::setCursorSurface),
+                                          CTCompat::SET_CURSOR_SURFACE_SYM,
                                           rc<void*>(&hkSetCursorSurface));
 
     g_shapeHooksOk = g_setCursorFromNameHook && g_setCursorSurfaceHook;
@@ -199,7 +200,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     // values exist now → re-run the config so plugin.cursortrail.* gets applied
     HyprlandAPI::reloadConfig();
 
-    return {"cursortrail", "osu!-style glowing cursor trail and circle cursor", "mahiru", "1.1"};
+    return {"cursortrail", "osu!-style glowing cursor trail and circle cursor", "mahiru", "1.0.0"};
 }
 
 APICALL EXPORT void PLUGIN_EXIT() {

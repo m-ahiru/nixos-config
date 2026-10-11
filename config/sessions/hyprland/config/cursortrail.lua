@@ -49,7 +49,7 @@ hl.config({
             opacity            = 0.75,
             blend              = "additive",   -- "additive" (glow) | "normal" (also visible on white)
 
-            width              = 8,            -- core width in px
+            width              = 15,            -- core width in px
             glow               = 1.0,          -- glow strength, 0 = off
             glow_size          = 4.0,          -- glow width as multiple of the core
             hot_core           = 0.5,          -- 0..1, how white-hot the center burns
@@ -68,6 +68,7 @@ hl.config({
             -- ── osu!-style circle cursor (needs cursor.no_hardware_cursors = 1, see settings.lua) ──
             -- replaces every cursor; over text the normal I-beam stays and the trail pauses
             cursor              = true,
+            cursor_style        = 9,            -- shape 0..15, previews: github.com/m-ahiru/hypr-cursortrail#cursor-styles
             cursor_keep_text    = true,         -- false: circle replaces the I-beam too (terminals show it everywhere)
             cursor_text_delay   = 200,          -- ms over text before I-beam + trail pause kick in; quick passes don't count
             cursor_text_style   = true,         -- I-beam in the circle's look (false: theme's normal I-beam)

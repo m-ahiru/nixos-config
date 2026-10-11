@@ -98,6 +98,7 @@ class CCursorTrail {
     SProgram           m_trailProg, m_circleProg, m_contrastProg, m_textProg;
     GLuint             m_vao = 0, m_vbo = 0; // one quad buffer for everything
     std::vector<float> m_ptsScratch;         // trail points for the uniform array
+    std::vector<float> m_coreScratch;        // core radius per trail point
     bool                 m_glFailed = false;
     std::vector<SVertex> m_vertexScratch;
 
