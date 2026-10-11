@@ -27,7 +27,9 @@
     blender
     pkgs.android-tools
     runelite
+    mame-tools
     lutris
+    samba
     (pkgs.writeShellScriptBin "ai" ''
   exec ${pkgs.llama-cpp-vulkan}/bin/llama-server \
     -hf unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M \
@@ -165,6 +167,11 @@ security.wrappers.bwrap = {
   programs.appimage = {
     enable = true;
     binfmt = true;
+};
+ 
+  programs.uclicker = {
+  enable = true;
+  users = [ "mahiru" ];
 };
 
   programs.zsh.enable = true;

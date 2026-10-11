@@ -78,8 +78,9 @@ input_path = "~/.config/matugen/templates/qt-style.qss.template"
 output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 
 [templates.hyprland]
-input_path = '~/.config/matugen/templates/hyprland.conf.template'
-output_path = '~/.config/hypr/colors.conf'
+input_path = '~/.config/matugen/templates/hyprland-colors.lua.template'
+output_path = '~/.config/hypr/colors.lua'
+post_hook = "hyprctl reload"
 
 [templates.steam]
 input_path = "~/.config/matugen/templates/steam.css"

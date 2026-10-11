@@ -146,7 +146,11 @@ Item {
     }
 
     function launchApp(execStr) {
-        Quickshell.execDetached(["hyprctl", "dispatch", "exec", "--", execStr]);
+        // Lua config: hyprctl dispatch takes a Lua dispatcher expression.
+        // Long-bracket string so quotes/backslashes in the Exec line need no escaping.
+        let eq = "=";
+        while (execStr.indexOf("]" + eq + "]") !== -1) eq += "=";
+        Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.exec_cmd([" + eq + "[" + execStr + "]" + eq + "])"]);
         Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/hypr/scripts/qs_manager.sh", "close"]);
     }
 

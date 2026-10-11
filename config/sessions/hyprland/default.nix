@@ -7,8 +7,12 @@ wayland.windowManager.hyprland = {
   enable = true;
   package = null;
   portalPackage = null;
+  # Lua config (Hyprland >= 0.55). HM writes ~/.config/hypr/hyprland.lua with the
+  # systemd/dbus activation in a "hyprland.start" hook, then loads our modules from
+  # ~/.config/hypr/config/init.lua (out-of-store symlink below, so edits apply live).
+  configType = "lua";
   extraConfig = ''
-    source = /etc/nixos/config/sessions/hyprland/hyprland.conf
+    require("config")
   '';
 };
   home.packages = with pkgs; [
@@ -49,5 +53,4 @@ wayland.windowManager.hyprland = {
   home.sessionVariables.NIXOS_OZONE_WL = "1";
   home.file.".config/hypr/scripts".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/scripts";
   home.file.".config/hypr/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/config";
-  home.file.".config/hypr/templates".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/templates";
 }

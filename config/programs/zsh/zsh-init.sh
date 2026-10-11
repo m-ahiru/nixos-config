@@ -217,7 +217,7 @@ stsetup() {
     
     sleep 0.5
     
-    hyprctl dispatch splitratio -0.5
+    hyprctl dispatch 'hl.dsp.layout("splitratio -0.5")'
 
     nix develop --command zsh -ic "edit; exec zsh"
 }

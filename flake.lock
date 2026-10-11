@@ -193,7 +193,28 @@
         "nixpkgs-quickshell": "nixpkgs-quickshell",
         "nixpkgs-swww": "nixpkgs-swww",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "uclicker": "uclicker",
         "zen-browser": "zen-browser"
+      }
+    },
+    "uclicker": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789816378,
+        "narHash": "sha256-pz/Bk61bN71eRmPvr3py6u3fNvtDckQjVB60VwNF+xY=",
+        "owner": "m-ahiru",
+        "repo": "uClicker",
+        "rev": "ca4fd0c3528169575903d5a6d87291bd7f1a82b6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "m-ahiru",
+        "repo": "uClicker",
+        "type": "github"
       }
     },
     "zen-browser": {
