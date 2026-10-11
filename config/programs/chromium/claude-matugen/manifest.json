@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Claude Matugen",
+  "version": "1.0",
+  "description": "Recolors claude.ai with the current matugen palette.",
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["colors.json"],
+      "matches": ["https://claude.ai/*"]
+    }
+  ]
+}

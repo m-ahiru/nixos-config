@@ -90,3 +90,7 @@ post_hook = "adwaita-steam-gtk -i -o 'custom_css:true'"
 [templates.obs]
 input_path = "~/.config/matugen/templates/matugen.obt"
 output_path = "~/.config/obs-studio/themes/matugen.obt"
+
+[templates.claude]
+input_path = "~/.config/matugen/templates/websites/claude.json.template"
+output_path = "~/.local/share/claude-matugen/colors.json"
