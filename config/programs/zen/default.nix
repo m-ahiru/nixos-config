@@ -23,5 +23,8 @@
 
   // ---- Inspector auf chrome (optional) ----
   user_pref("devtools.chrome.enabled", true);
+
+  // ---- Video-Streifen-Bug (RX 9070 / VA-API) ----
+  user_pref("media.hardware-video-decoding.enabled", false);
 '';
 }

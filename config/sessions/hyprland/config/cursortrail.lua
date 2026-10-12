@@ -68,7 +68,7 @@ hl.config({
             -- ── osu!-style circle cursor (needs cursor.no_hardware_cursors = 1, see settings.lua) ──
             -- replaces every cursor; over text the normal I-beam stays and the trail pauses
             cursor              = true,
-            cursor_style        = 9,            -- shape 0..15, previews: github.com/m-ahiru/hypr-cursortrail#cursor-styles
+            cursor_style        = 3,            -- shape 0..15, previews: github.com/m-ahiru/hypr-cursortrail#cursor-styles
             cursor_keep_text    = true,         -- false: circle replaces the I-beam too (terminals show it everywhere)
             cursor_text_delay   = 200,          -- ms over text before I-beam + trail pause kick in; quick passes don't count
             cursor_text_style   = true,         -- I-beam in the circle's look (false: theme's normal I-beam)
@@ -77,10 +77,10 @@ hl.config({
             cursor_in_fullscreen = true,        -- circle also in fullscreen games/apps (trail stays off there)
             cursor_size         = 11,           -- outer radius in px
             cursor_ring         = 4,            -- ring thickness
-            cursor_glow         = 1.0,          -- soft glow outside the ring, 0 = off
-            cursor_glow_size    = 7,
+            cursor_glow         = 0.4,          -- soft glow outside the ring, 0 = off
+            cursor_glow_size    = 4,
             -- visibility on any background:
-            cursor_shadow       = 0.45,         -- soft dark halo behind the circle (helps on light/busy bg)
+            cursor_shadow       = 0.25,         -- soft dark halo behind the circle (helps on light/busy bg)
             cursor_shadow_size  = 9,
             cursor_contrast     = 0,            -- 0..1 inverted hairline, visible on literally anything
             cursor_outline      = 0,            -- 0..1 hard dark edge
