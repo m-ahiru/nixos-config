@@ -355,50 +355,23 @@ services.flatpak = {
     dates = "daily";
     options = "--delete-older-than 14d";
   };
-  boot = {
-    plymouth = {
-      enable = true;
-      theme = "simple";
-      themePackages = [
-        (pkgs.stdenv.mkDerivation {
-          pname = "plymouth-theme-simple";
-          version = "1.0";
-          
-          # CHANGE THIS to the actual path of your custom theme folder
-          src = ./config/programs/plymouth/simple; 
-
-          installPhase = ''
-            mkdir -p $out/share/plymouth/themes/simple
-            cp -r * $out/share/plymouth/themes/simple/
-            
-            # This dynamically replaces the @out@ placeholder with the real Nix store path
-            substituteInPlace $out/share/plymouth/themes/simple/simple.plymouth \
-              --replace "@out@" "$out"
-          '';
-        })      
-	];
-    };
-
-    consoleLogLevel = 0;
-    initrd.verbose = false;
-    kernelParams = [
-      "quiet"
-      "splash"
-      "boot.shell_on_fail"
-      "loglevel=3"
-      "rd.systemd.show_status=false"
-      "rd.udev.log_level=3"
-      "udev.log_priority=3"
-      "amd_pstate=active" 
-      "tsc=reliable" 
-    ];
-    
-  };
+  boot.kernelParams = [
+    "boot.shell_on_fail"
+    "amd_pstate=active"
+    "tsc=reliable"
+  ];
   # Virtualization
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
   # Bootloader and kernel
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    device = "nodev";
+    gfxmodeEfi = "1920x1080";
+    gfxpayloadEfi = "keep";
+    configurationLimit = 10;
+  };
   boot.loader.efi.canTouchEfiVariables = true;
   boot.extraModprobeConfig = ''
   options snd-usb-audio vid=0x054c pid=0x0df2 index=-2

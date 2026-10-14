@@ -215,8 +215,8 @@ void CCursorTrail::onPointerMoved() {
         return;
     }
 
-    // over text (after the dwell delay): stop recording, but let what's there fade out naturally
-    if (textMode()) {
+    // over text (after the dwell delay) or a kept shape: stop recording, let what's there fade out
+    if (textMode() || m_shape == SHAPE_KEEP) {
         queueDamage();
         return;
     }
@@ -264,9 +264,12 @@ void CCursorTrail::onCursorShape(const std::string& shape) {
     static constexpr std::array<std::string_view, 5> LINKS = {"pointer", "hand", "hand1", "hand2", "pointing_hand"};
 
     m_appHidCursor = false; // a named shape is always visible
+    m_clientCursor = false; // ... and comes from us, not as an image from the app
 
     const eShape prev = m_shape;
-    if (std::ranges::find(TEXT, shape) != TEXT.end())
+    if (const auto kept = keptShapes(); std::ranges::find(kept, shape) != kept.end())
+        m_shape = SHAPE_KEEP;
+    else if (std::ranges::find(TEXT, shape) != TEXT.end())
         m_shape = SHAPE_TEXT;
     else if (std::ranges::find(LINKS, shape) != LINKS.end())
         m_shape = SHAPE_LINK;
@@ -281,8 +284,13 @@ void CCursorTrail::onCursorShape(const std::string& shape) {
 void CCursorTrail::onCursorClientSurface(bool visible) {
     // app draws its own cursor image: we can't know the shape → treat as normal, the circle replaces it.
     // No image at all = the app hides the cursor (games while playing): no trail then.
-    m_shape        = SHAPE_NORMAL;
-    m_appHidCursor = !visible;
+    // we can't know the shape from the name; the next frame compares the image with the
+    // cursor_keep shapes (slurp sends its crosshair like this). Keep a kept shape until then.
+    if (m_shape != SHAPE_KEEP)
+        m_shape = SHAPE_NORMAL;
+    m_appHidCursor   = !visible;
+    m_clientCursor   = visible;
+    m_analyzePending = visible;
     if (m_appHidCursor)
         clear();
     queueDamage();
@@ -492,12 +500,138 @@ bool CCursorTrail::fullscreenOn(PHLMONITOR monitor) const {
         !monitor->m_activeSpecialWorkspace;
 }
 
+// cursor_keep: comma separated shape names whose real cursor always stays (crosshair while
+// taking a screenshot, ...)
+std::vector<std::string> CCursorTrail::keptShapes() const {
+    std::vector<std::string> out;
+    const std::string        list  = g_config.cursorKeep->value();
+    size_t                   start = 0;
+    while (start <= list.size()) {
+        size_t end = list.find(',', start);
+        if (end == std::string::npos)
+            end = list.size();
+        std::string_view name{list.data() + start, end - start};
+        while (!name.empty() && std::isspace(sc<unsigned char>(name.front())))
+            name.remove_prefix(1);
+        while (!name.empty() && std::isspace(sc<unsigned char>(name.back())))
+            name.remove_suffix(1);
+        if (!name.empty())
+            out.emplace_back(name);
+        start = end + 1;
+    }
+    return out;
+}
+
+void CCursorTrail::preloadKeptImages() {
+    m_keepImages.refresh(keptShapes());
+}
+
+// Runs at the start of a frame (GL context current): if the app's cursor image changed, check
+// whether it's one of the kept shapes from the theme.
+void CCursorTrail::analyzeClientCursor() {
+    if (!m_clientCursor || !CTCompat::pointer())
+        return;
+    const auto tex = CTCompat::pointer()->getCurrentCursorTexture();
+    if (!tex || (!m_analyzePending && tex.get() == m_analyzedTex))
+        return;
+    m_analyzePending = false;
+    m_analyzedTex    = tex.get();
+
+    m_keepImages.refresh(keptShapes());
+    const bool keep = !m_keepImages.empty() && matchesKeptImage(tex);
+    if (keep && m_shape != SHAPE_KEEP) {
+        m_shape = SHAPE_KEEP;
+        queueDamage();
+    } else if (!keep && m_shape == SHAPE_KEEP)
+        m_shape = SHAPE_NORMAL;
+}
+
+static GLuint linkProgram(const char* vert, const char* frag);
+
+bool CCursorTrail::matchesKeptImage(const SP<Render::ITexture>& tex) {
+    if (!tex || !tex->m_texID || tex->m_type == Render::TEXTURE_EXTERNAL || tex->m_size.x < 1 || tex->m_size.y < 1 || !ensureGL())
+        return false;
+
+    if (!m_copyProg) {
+        m_copyProg = linkProgram(CURSORCOPY_VERT, CURSORCOPY_FRAG);
+        if (!m_copyProg)
+            return false;
+    }
+
+    const int w = std::min(sc<int>(tex->m_size.x), 256), h = std::min(sc<int>(tex->m_size.y), 256);
+
+    // ── save everything we touch ──
+    GLint prevRead = 0, prevDraw = 0, prevProg = 0, prevVao = 0, prevVbo = 0, prevActive = 0, prevTex = 0;
+    GLint viewport[4] = {};
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevRead);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDraw);
+    glGetIntegerv(GL_CURRENT_PROGRAM, &prevProg);
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVao);
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevVbo);
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &prevActive);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    const GLboolean scissorOn = glIsEnabled(GL_SCISSOR_TEST);
+    const GLboolean blendOn   = glIsEnabled(GL_BLEND);
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
+
+    // ── our RGBA8 target ──
+    if (!m_readTex || m_readTexSize != Vector2D{sc<double>(w), sc<double>(h)}) {
+        if (!m_readTex)
+            glGenTextures(1, &m_readTex);
+        glBindTexture(GL_TEXTURE_2D, m_readTex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_readTexSize = {sc<double>(w), sc<double>(h)};
+    }
+    if (!m_readFbo)
+        glGenFramebuffers(1, &m_readFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_readFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_readTex, 0);
+
+    bool custom = false; // here: "is one of the kept shapes"
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        // ── copy 1:1 ──
+        glViewport(0, 0, w, h);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_BLEND);
+        glBindTexture(GL_TEXTURE_2D, tex->m_texID);
+        glUseProgram(m_copyProg);
+        glUniform1i(glGetUniformLocation(m_copyProg, "uTex"), 0);
+        m_vertexScratch = {{-1.F, -1.F, 0.F, 0.F}, {1.F, -1.F, 0.F, 0.F}, {-1.F, 1.F, 0.F, 0.F}, {1.F, 1.F, 0.F, 0.F}};
+        glBindVertexArray(m_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sc<GLsizeiptr>(m_vertexScratch.size() * sizeof(SVertex)), m_vertexScratch.data(), GL_STREAM_DRAW);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        // ── read back ──
+        m_readScratch.resize(sc<size_t>(w) * h * 4);
+        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_readScratch.data());
+
+        custom = m_keepImages.contains(m_readScratch.data(), w, h);
+    }
+
+    // ── restore ──
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prevRead);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDraw);
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    scissorOn ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+    blendOn ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+    glBindTexture(GL_TEXTURE_2D, prevTex);
+    glActiveTexture(prevActive);
+    glBindBuffer(GL_ARRAY_BUFFER, prevVbo);
+    glBindVertexArray(prevVao);
+    glUseProgram(prevProg);
+    return custom;
+}
+
 bool CCursorTrail::wantCircle(PHLMONITOR monitor) const {
     if (!g_config.cursorEnabled->value())
         return false;
     if (fullscreenOn(monitor) && !g_config.cursorInFullscreen->value())
         return false;
-    return !textMode();
+    return !textMode() && m_shape != SHAPE_KEEP;
 }
 
 bool CCursorTrail::wantStyledText(PHLMONITOR monitor) const {
@@ -509,6 +643,8 @@ bool CCursorTrail::wantStyledText(PHLMONITOR monitor) const {
 // ───────────────────────────── render hooks ─────────────────────────────────
 
 void CCursorTrail::onRenderLastMoment(PHLMONITOR monitor) {
+    analyzeClientCursor();
+
     const auto now = TrailClock::now();
     buildPoints(now);
     tickClickAnimation();
@@ -696,6 +832,15 @@ void CCursorTrail::destroyGL() {
         glDeleteProgram(m_contrastProg.id);
     if (m_textProg.id)
         glDeleteProgram(m_textProg.id);
+    if (m_readFbo)
+        glDeleteFramebuffers(1, &m_readFbo);
+    if (m_readTex)
+        glDeleteTextures(1, &m_readTex);
+    if (m_copyProg)
+        glDeleteProgram(m_copyProg);
+    m_readFbo = m_readTex = m_copyProg = 0;
+    m_readTexSize = {};
+    m_analyzedTex = nullptr;
     m_vbo = m_vao  = 0;
     m_trailProg    = {};
     m_circleProg   = {};

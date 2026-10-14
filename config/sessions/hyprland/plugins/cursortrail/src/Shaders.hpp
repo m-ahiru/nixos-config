@@ -369,3 +369,24 @@ void main() {
     fragColor = c;
 }
 )glsl";
+
+// ───────────────────────── cursor image readback ─────────────────────────────
+// Copies an app's cursor texture 1:1 into our own RGBA8 texture so it can be read back on any
+// driver (some can't attach the app's BGRA texture to a framebuffer directly).
+inline constexpr const char* CURSORCOPY_VERT = R"glsl(#version 300 es
+precision highp float;
+in vec2 aPos;  // clip space
+in vec2 aData;
+void main() {
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)glsl";
+
+inline constexpr const char* CURSORCOPY_FRAG = R"glsl(#version 300 es
+precision highp float;
+uniform sampler2D uTex;
+out vec4 fragColor;
+void main() {
+    fragColor = texelFetch(uTex, ivec2(gl_FragCoord.xy), 0);
+}
+)glsl";

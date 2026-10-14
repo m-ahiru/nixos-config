@@ -33,6 +33,7 @@ struct SCursorTrailConfig {
     // osu!-style circle cursor (needs software cursors: cursor.no_hardware_cursors = 1)
     // Replaces every cursor shape except the text cursor (there the trail pauses too).
     SP<Config::Values::CBoolValue>   cursorEnabled;
+    SP<Config::Values::CStringValue> cursorKeep;         // theme shapes that are never replaced (crosshair, ...)
     SP<Config::Values::CBoolValue>   cursorKeepText;     // keep the real I-beam (and pause the trail) over text
     SP<Config::Values::CIntValue>    cursorTextDelay;    // ms over text before that kicks in (quick passes don't count)
     SP<Config::Values::CBoolValue>   cursorTextStyle;    // draw the I-beam in the circle's style instead of the theme's

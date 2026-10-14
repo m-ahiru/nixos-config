@@ -12,6 +12,12 @@
 #include <hyprland/src/helpers/memory/Memory.hpp>
 #include <hyprland/src/desktop/DesktopTypes.hpp>
 
+#include "CursorTheme.hpp"
+
+namespace Render {
+    class ITexture;
+}
+
 using TrailClock = std::chrono::steady_clock;
 
 // Draws the glowing trail and (optionally) replaces the arrow cursor with an osu!-style circle.
@@ -25,6 +31,7 @@ class CCursorTrail {
     void onPointerButton(bool pressed);
     void onCursorShape(const std::string& shape); // theme cursor by name (left_ptr, text, ...)
     void onCursorClientSurface(bool visible);     // app supplied its own cursor image (or hid it)
+    void preloadKeptImages();                     // read the cursor_keep shapes from the theme now
 
     // render side (render-stage listener, GL context is current)
     void onRenderLastMoment(PHLMONITOR monitor);
@@ -80,6 +87,7 @@ class CCursorTrail {
         SHAPE_NORMAL = 0, // arrow, resize, move, app-supplied images, ...
         SHAPE_LINK,       // pointer / hand: something clickable → circle grows a bit
         SHAPE_TEXT,       // I-beam: real cursor stays, trail pauses
+        SHAPE_KEEP,       // cursor_keep (crosshair, ...): real cursor stays right away, trail pauses
     };
     eShape                 m_shape = SHAPE_NORMAL;
     bool                   m_appHidCursor    = false; // app set an empty cursor (games while playing)
@@ -89,6 +97,16 @@ class CCursorTrail {
     float                  m_clickScale    = 1.F;
     TrailClock::time_point m_lastAnimTick{};
     bool                   m_cursorDrawnThisFrame = false;
+
+    // apps that send a theme cursor as an image (slurp's crosshair): compare it with the
+    // cursor_keep shapes of the theme, once per new image
+    bool                   m_clientCursor   = false; // current cursor is an image from the app
+    bool                   m_analyzePending = false;
+    void*                  m_analyzedTex    = nullptr;
+    CCursorThemeImages     m_keepImages;
+    GLuint                 m_readFbo = 0, m_readTex = 0, m_copyProg = 0;
+    Vector2D               m_readTexSize;
+    std::vector<uint8_t>   m_readScratch;
 
     // damage tracking (global logical coords)
     CBox m_trailBox, m_cursorBox, m_lastDamaged;
@@ -115,6 +133,9 @@ class CCursorTrail {
     float                glowFactor() const;
     float                cursorOuterRadius() const; // incl. glow & max click scale, logical px
     bool                 fullscreenOn(PHLMONITOR monitor) const;
+    std::vector<std::string> keptShapes() const;   // cursor_keep, split
+    void                 analyzeClientCursor();     // client image = one of the kept shapes?
+    bool                 matchesKeptImage(const SP<Render::ITexture>& tex);
     bool                 wantCircle(PHLMONITOR monitor) const;
     bool                 wantStyledText(PHLMONITOR monitor) const;
     bool                 ensureGL();
