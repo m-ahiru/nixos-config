@@ -65,5 +65,13 @@ wayland.windowManager.hyprland = {
       cursortrail = "${cursortrail}/lib/libcursortrail.so",
     }
   '';
+  # Cursor theme from home.pointerCursor (home.nix), read by config/env.lua via require("nix-cursor").
+  # home.pointerCursor only exports XCURSOR_* to shells; apps started by Hyprland (slurp, ...) need them too.
+  home.file.".config/hypr/nix-cursor.lua".text = ''
+    return {
+      theme = "${config.home.pointerCursor.name}",
+      size  = ${toString config.home.pointerCursor.size},
+    }
+  '';
   home.file.".config/hypr/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/config/sessions/hyprland/config";
 }

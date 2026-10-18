@@ -107,6 +107,20 @@ class CCursorTrail {
     GLuint                 m_readFbo = 0, m_readTex = 0, m_copyProg = 0;
     Vector2D               m_readTexSize;
     std::vector<uint8_t>   m_readScratch;
+    std::string            m_debugRead; // what matchesKeptImage saw, for cursortrail:debug
+    bool                   m_readEmpty   = false; // last readback had no visible pixel
+    int                    m_readRetries = 0;
+    int                    m_recheckFrames = 0;   // frames left to look at a new app cursor again
+
+    // the last kept cursor image, shown a bit longer after it's gone (cursor_keep_linger)
+    SP<Render::ITexture>   m_keptTex;
+    Vector2D               m_keptHotspot;
+    float                  m_keptScale = 1.F;
+    TrailClock::time_point m_lingerUntil{};
+    void                   rememberKeptCursor();
+    void                   leaveKeep();       // shape switches away from a kept one → start lingering
+    bool                   lingering() const;
+    std::string            m_lastDebugMsg;
 
     // damage tracking (global logical coords)
     CBox m_trailBox, m_cursorBox, m_lastDamaged;
@@ -136,6 +150,7 @@ class CCursorTrail {
     std::vector<std::string> keptShapes() const;   // cursor_keep, split
     void                 analyzeClientCursor();     // client image = one of the kept shapes?
     bool                 matchesKeptImage(const SP<Render::ITexture>& tex);
+    bool                 readClientCursorShm(int& w, int& h); // app's cursor pixels from Hyprland's CPU copy → m_readScratch
     bool                 wantCircle(PHLMONITOR monitor) const;
     bool                 wantStyledText(PHLMONITOR monitor) const;
     bool                 ensureGL();

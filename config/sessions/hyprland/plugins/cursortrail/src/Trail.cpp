@@ -1,6 +1,7 @@
 // Every standard header up front: the access hack below must never see them.
 #if __has_include(<bits/stdc++.h>)
 #include <bits/stdc++.h>
+#include <dlfcn.h>
 #else
 #include <algorithm>
 #include <any>
@@ -267,8 +268,10 @@ void CCursorTrail::onCursorShape(const std::string& shape) {
     m_clientCursor = false; // ... and comes from us, not as an image from the app
 
     const eShape prev = m_shape;
-    if (const auto kept = keptShapes(); std::ranges::find(kept, shape) != kept.end())
+    if (const auto kept = keptShapes(); std::ranges::find(kept, shape) != kept.end()) {
         m_shape = SHAPE_KEEP;
+        m_keptTex.reset(); // our own theme cursor: grabbed on the next frame (see onRenderLastMoment)
+    }
     else if (std::ranges::find(TEXT, shape) != TEXT.end())
         m_shape = SHAPE_TEXT;
     else if (std::ranges::find(LINKS, shape) != LINKS.end())
@@ -278,6 +281,8 @@ void CCursorTrail::onCursorShape(const std::string& shape) {
 
     if (m_shape == SHAPE_TEXT && prev != SHAPE_TEXT)
         m_textSince = TrailClock::now(); // text mode kicks in after cursor_text_delay over text
+    if (prev == SHAPE_KEEP && m_shape != SHAPE_KEEP)
+        leaveKeep();
     queueDamage();
 }
 
@@ -288,9 +293,15 @@ void CCursorTrail::onCursorClientSurface(bool visible) {
     // cursor_keep shapes (slurp sends its crosshair like this). Keep a kept shape until then.
     if (m_shape != SHAPE_KEEP)
         m_shape = SHAPE_NORMAL;
+    else if (!visible) {
+        m_shape = SHAPE_NORMAL;
+        leaveKeep();
+    }
     m_appHidCursor   = !visible;
     m_clientCursor   = visible;
     m_analyzePending = visible;
+    m_recheckFrames  = visible ? 30 : 0;
+    m_lastDebugMsg.clear();
     if (m_appHidCursor)
         clear();
     queueDamage();
@@ -532,18 +543,98 @@ void CCursorTrail::analyzeClientCursor() {
     if (!m_clientCursor || !CTCompat::pointer())
         return;
     const auto tex = CTCompat::pointer()->getCurrentCursorTexture();
-    if (!tex || (!m_analyzePending && tex.get() == m_analyzedTex))
+    if (!tex)
+        return;
+    // the app may fill its cursor buffer a moment after setting it (and Hyprland reuses the
+    // texture object), so look again for a few frames after every new app cursor
+    bool recheck = false;
+    if (m_recheckFrames > 0 && m_shape != SHAPE_KEEP) {
+        --m_recheckFrames;
+        recheck = true;
+    }
+    if (!m_analyzePending && !recheck && tex.get() == m_analyzedTex)
         return;
     m_analyzePending = false;
     m_analyzedTex    = tex.get();
 
     m_keepImages.refresh(keptShapes());
-    const bool keep = !m_keepImages.empty() && matchesKeptImage(tex);
-    if (keep && m_shape != SHAPE_KEEP) {
-        m_shape = SHAPE_KEEP;
+    m_debugRead.clear();
+    m_readEmpty = false;
+
+    // Hyprland keeps a CPU copy of shm cursor images (that's how nearly every app sends them).
+    // Use it when there is one; reading the GPU texture back is only the fallback.
+    bool keep = false;
+    if (int w = 0, h = 0; !m_keepImages.empty() && readClientCursorShm(w, h)) {
+        keep = m_keepImages.contains(m_readScratch.data(), w, h);
+        if (g_config.debug->value()) {
+            size_t visible = 0;
+            for (size_t i = 3; i < m_readScratch.size(); i += 4)
+                visible += m_readScratch[i] > 0;
+            m_debugRead = std::format("shm {}x{}, {} visible px, best same-size match {}%", w, h, visible, m_keepImages.bestMatch(m_readScratch.data(), w, h));
+        }
+    } else
+        keep = !m_keepImages.empty() && matchesKeptImage(tex);
+    if (m_readEmpty && m_readRetries < 30) { // buffer not uploaded yet: look again next frame
+        ++m_readRetries;
+        m_analyzePending = true;
         queueDamage();
-    } else if (!keep && m_shape == SHAPE_KEEP)
+        return;
+    }
+    m_readRetries = 0;
+
+    if (g_config.debug->value()) {
+        const char* type = tex->m_type == Render::TEXTURE_RGBA ? "RGBA" : tex->m_type == Render::TEXTURE_RGBX ? "RGBX" : tex->m_type == Render::TEXTURE_EXTERNAL ? "EXTERNAL" : "other";
+        const auto  msg  = std::format("[cursortrail] app cursor {}x{} ({}) → {}\n{}\n{}", sc<int>(tex->m_size.x), sc<int>(tex->m_size.y), type,
+                                       keep ? "KEPT (matches cursor_keep)" : "replaced", m_debugRead.empty() ? "not read" : m_debugRead, m_keepImages.describe());
+        if (msg != m_lastDebugMsg) {
+            m_lastDebugMsg = msg;
+            HyprlandAPI::addNotification(PHANDLE, msg, keep ? CHyprColor{0.3, 1.0, 0.4, 1.0} : CHyprColor{1.0, 0.8, 0.2, 1.0}, 8000);
+        }
+    }
+
+    if (keep) {
+        if (m_shape != SHAPE_KEEP)
+            queueDamage();
+        m_shape = SHAPE_KEEP;
+        rememberKeptCursor();
+    } else if (m_shape == SHAPE_KEEP) {
         m_shape = SHAPE_NORMAL;
+        leaveKeep();
+    }
+}
+
+bool CCursorTrail::readClientCursorShm(int& w, int& h) {
+    if (!CTCompat::pointer())
+        return false;
+    const auto wl  = CTCompat::pointer()->m_currentCursorImage.surface.lock();
+    const auto res = wl ? wl->resource() : nullptr;
+    if (!res || !res->m_role || res->m_role->role() != SURFACE_ROLE_CURSOR)
+        return false;
+
+    // the role (and with it the pixel copy) lives as long as `res`, which we hold
+    const std::vector<uint8_t>* pixels = &CCursorSurfaceRole::cursorPixelData(res);
+    const std::vector<uint8_t>& data   = *pixels;
+    w                = sc<int>(res->m_current.bufferSize.x);
+    h                = sc<int>(res->m_current.bufferSize.y);
+    if (data.empty() || w <= 0 || h <= 0 || w > 512 || h > 512)
+        return false;
+    const size_t stride = data.size() / h;
+    if (stride < sc<size_t>(w) * 4)
+        return false;
+
+    // ARGB8888 little endian = B,G,R,A bytes → R,G,B,A like the theme images
+    m_readScratch.resize(sc<size_t>(w) * h * 4);
+    for (int y = 0; y < h; ++y) {
+        const uint8_t* src = data.data() + y * stride;
+        uint8_t*       dst = m_readScratch.data() + sc<size_t>(y) * w * 4;
+        for (int x = 0; x < w; ++x) {
+            dst[x * 4 + 0] = src[x * 4 + 2];
+            dst[x * 4 + 1] = src[x * 4 + 1];
+            dst[x * 4 + 2] = src[x * 4 + 0];
+            dst[x * 4 + 3] = src[x * 4 + 3];
+        }
+    }
+    return true;
 }
 
 static GLuint linkProgram(const char* vert, const char* frag);
@@ -572,6 +663,18 @@ bool CCursorTrail::matchesKeptImage(const SP<Render::ITexture>& tex) {
     glGetIntegerv(GL_VIEWPORT, viewport);
     const GLboolean scissorOn = glIsEnabled(GL_SCISSOR_TEST);
     const GLboolean blendOn   = glIsEnabled(GL_BLEND);
+    const GLboolean stencilOn = glIsEnabled(GL_STENCIL_TEST);
+    const GLboolean depthOn   = glIsEnabled(GL_DEPTH_TEST);
+    const GLboolean cullOn    = glIsEnabled(GL_CULL_FACE);
+    GLboolean       colorMask[4] = {GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE};
+    glGetBooleanv(GL_COLOR_WRITEMASK, colorMask);
+    // a bound pixel pack buffer would swallow glReadPixels, odd pack settings would scramble it
+    GLint prevPackBuf = 0, prevPackAlign = 4, prevPackRow = 0, prevPackSkipPx = 0, prevPackSkipRows = 0;
+    glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &prevPackBuf);
+    glGetIntegerv(GL_PACK_ALIGNMENT, &prevPackAlign);
+    glGetIntegerv(GL_PACK_ROW_LENGTH, &prevPackRow);
+    glGetIntegerv(GL_PACK_SKIP_PIXELS, &prevPackSkipPx);
+    glGetIntegerv(GL_PACK_SKIP_ROWS, &prevPackSkipRows);
     glActiveTexture(GL_TEXTURE0);
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex);
 
@@ -596,6 +699,12 @@ bool CCursorTrail::matchesKeptImage(const SP<Render::ITexture>& tex) {
         glViewport(0, 0, w, h);
         glDisable(GL_SCISSOR_TEST);
         glDisable(GL_BLEND);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glClearColor(0.F, 0.F, 0.F, 0.F);
+        glClear(GL_COLOR_BUFFER_BIT);
         glBindTexture(GL_TEXTURE_2D, tex->m_texID);
         glUseProgram(m_copyProg);
         glUniform1i(glGetUniformLocation(m_copyProg, "uTex"), 0);
@@ -606,13 +715,40 @@ bool CCursorTrail::matchesKeptImage(const SP<Render::ITexture>& tex) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         // ── read back ──
-        m_readScratch.resize(sc<size_t>(w) * h * 4);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+        m_readScratch.assign(sc<size_t>(w) * h * 4, 0);
         glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, m_readScratch.data());
 
+        // nothing visible at all = the app's buffer isn't on the GPU yet → try again next frame
+        m_readEmpty = std::ranges::none_of(m_readScratch, [](uint8_t b) { return b != 0; });
+
         custom = m_keepImages.contains(m_readScratch.data(), w, h);
+        if (g_config.debug->value())
+        {
+            size_t visible = 0;
+            for (size_t i = 3; i < m_readScratch.size(); i += 4)
+                visible += m_readScratch[i] > 0;
+            m_debugRead = std::format("read {}x{}, {} visible px, best same-size match {}%{}", w, h, visible, m_keepImages.bestMatch(m_readScratch.data(), w, h),
+                                      m_readEmpty ? " (nothing visible, buffer empty?)" : "");
+        }
+    } else if (g_config.debug->value()) {
+        m_debugRead = "framebuffer incomplete, couldn't read the image";
     }
 
     // ── restore ──
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, prevPackBuf);
+    glPixelStorei(GL_PACK_ALIGNMENT, prevPackAlign);
+    glPixelStorei(GL_PACK_ROW_LENGTH, prevPackRow);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, prevPackSkipPx);
+    glPixelStorei(GL_PACK_SKIP_ROWS, prevPackSkipRows);
+    glColorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
+    stencilOn ? glEnable(GL_STENCIL_TEST) : glDisable(GL_STENCIL_TEST);
+    depthOn ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+    cullOn ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, prevRead);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDraw);
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
@@ -624,6 +760,27 @@ bool CCursorTrail::matchesKeptImage(const SP<Render::ITexture>& tex) {
     glBindVertexArray(prevVao);
     glUseProgram(prevProg);
     return custom;
+}
+
+void CCursorTrail::rememberKeptCursor() {
+    const auto* pm = CTCompat::pointer();
+    if (!pm)
+        return;
+    if (auto tex = CTCompat::pointer()->getCurrentCursorTexture()) {
+        m_keptTex     = tex; // holding it keeps the GPU texture alive after the app's surface is gone
+        m_keptHotspot = pm->m_currentCursorImage.hotspot;
+        m_keptScale   = std::max(pm->m_currentCursorImage.scale, 0.01F);
+    }
+}
+
+void CCursorTrail::leaveKeep() {
+    const int ms  = std::max<int>(0, sc<int>(g_config.cursorKeepLinger->value()));
+    m_lingerUntil = m_keptTex && ms > 0 ? TrailClock::now() + std::chrono::milliseconds(ms) : TrailClock::time_point{};
+    queueDamage();
+}
+
+bool CCursorTrail::lingering() const {
+    return m_keptTex && TrailClock::now() < m_lingerUntil;
 }
 
 bool CCursorTrail::wantCircle(PHLMONITOR monitor) const {
@@ -671,6 +828,22 @@ void CCursorTrail::onRenderLastMoment(PHLMONITOR monitor) {
         }
     }
 
+    // kept theme shape (by name): remember its image for the linger
+    if (m_shape == SHAPE_KEEP && !m_keptTex && cursorIdx)
+        rememberKeptCursor();
+
+    // linger: right after a kept cursor (slurp's crosshair) ends, draw no cursor at all for a
+    // moment. With software cursors Hyprland bakes whatever cursor is showing into screenshots,
+    // so this keeps the screenshot taken right after the selection clean. No trail meanwhile.
+    if (m_shape != SHAPE_KEEP && lingering()) {
+        if (cursorIdx)
+            elems.erase(elems.begin() + *cursorIdx);
+        queueDamage(); // keep frames coming until the linger is over
+        return;
+    }
+    if (m_keptTex && m_shape != SHAPE_KEEP && TrailClock::now() >= m_lingerUntil)
+        m_keptTex.reset();
+
     const bool replaceCircle = cursorIdx.has_value() && wantCircle(monitor);
     const bool replaceText   = cursorIdx.has_value() && wantStyledText(monitor);
     const bool replaceCursor = replaceCircle || replaceText;
@@ -717,7 +890,7 @@ void CCursorTrail::onRenderLastMoment(PHLMONITOR monitor) {
 void CCursorTrail::onRenderPost(PHLMONITOR) {
     // keep frames coming while something animates, plus one more to wipe the trail once it's gone
     // textPending: keep checking until the dwell delay passes so the I-beam swaps in even if the mouse stopped
-    if (!m_points.empty() || m_hadTrail || clickAnimating() || textPending())
+    if (!m_points.empty() || m_hadTrail || clickAnimating() || textPending() || (m_clientCursor && m_recheckFrames > 0 && m_shape != SHAPE_KEEP))
         queueDamage();
     m_hadTrail = !m_points.empty();
 }

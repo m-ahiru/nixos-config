@@ -107,6 +107,8 @@ bool CCursorThemeImages::empty() const {
 void CCursorThemeImages::load(const std::string& theme, const std::vector<std::string>& dirs, const std::vector<std::string>& shapes) {
     m_images.clear();
     m_hashes.clear();
+    m_files.clear();
+    m_theme = theme;
 
     // the theme and everything it inherits from (breadth first, each theme once)
     std::vector<std::string> todo = {theme};
@@ -122,8 +124,10 @@ void CCursorThemeImages::load(const std::string& theme, const std::vector<std::s
                     if (shape.empty() || shape.find('/') != std::string::npos)
                         continue;
                     const auto real = fs::weakly_canonical(base / "cursors" / shape, ec).string();
-                    if (!ec && fs::is_regular_file(real, ec) && seenFiles.insert(real).second)
+                    if (!ec && fs::is_regular_file(real, ec) && seenFiles.insert(real).second) {
+                        m_files.push_back(real);
                         loadFile(real);
+                    }
                 }
             }
             if (fs::exists(base / "index.theme", ec))
@@ -168,6 +172,37 @@ void CCursorThemeImages::loadFile(const std::string& path) {
         m_hashes.insert(hash(img.rgba.data(), w, h));
         m_images.push_back(std::move(img));
     }
+}
+
+std::string CCursorThemeImages::describe() const {
+    std::string out = "theme '" + m_theme + "', " + std::to_string(m_files.size()) + " file(s)";
+    for (const auto& f : m_files)
+        out += "\n  " + f;
+    std::set<std::string> sizes;
+    for (const auto& img : m_images)
+        sizes.insert(std::to_string(img.w) + "x" + std::to_string(img.h));
+    out += "\n  sizes:";
+    for (const auto& sz : sizes)
+        out += " " + sz;
+    return out;
+}
+
+int CCursorThemeImages::bestMatch(const uint8_t* rgba, int w, int h) const {
+    int          best = -1;
+    const size_t n    = static_cast<size_t>(w) * h;
+    for (const auto& img : m_images) {
+        if (img.w != w || img.h != h)
+            continue;
+        size_t close = 0;
+        for (size_t p = 0; p < n; ++p) {
+            bool ok = true;
+            for (int c = 0; c < 4 && ok; ++c)
+                ok = std::abs(int{img.rgba[p * 4 + c]} - int{rgba[p * 4 + c]}) <= CLOSE_CHANNEL_DIFF;
+            close += ok;
+        }
+        best = std::max(best, static_cast<int>(close * 100 / std::max<size_t>(n, 1)));
+    }
+    return best;
 }
 
 bool CCursorThemeImages::contains(const uint8_t* rgba, int w, int h) const {

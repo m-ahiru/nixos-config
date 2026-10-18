@@ -21,6 +21,9 @@
 #endif
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/desktop/view/WLSurface.hpp>
+#include <hyprland/src/protocols/core/Compositor.hpp>
+#include <hyprland/src/protocols/core/Seat.hpp>
 
 namespace CTCompat {
 

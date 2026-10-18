@@ -43,6 +43,8 @@ static void registerConfig() {
     g_config.colorBoost        = makeShared<CFloatValue> ("plugin:cursortrail:color_boost",        "saturate trail/ring colors, keeps the hue", 0.F, SFloatValueOptions{.min = 0.F, .max = 1.F});
 
     g_config.cursorEnabled     = makeShared<CBoolValue>  ("plugin:cursortrail:cursor",             "replace the cursor with an osu!-style circle", true);
+    g_config.debug             = makeShared<CBoolValue>  ("plugin:cursortrail:debug",              "show notifications about detected app cursors", false);
+    g_config.cursorKeepLinger  = makeShared<CIntValue>   ("plugin:cursortrail:cursor_keep_linger", "ms without any cursor after a kept one (crosshair) ends, so the screenshot right after slurp is clean", 500, SIntValueOptions{.min = 0, .max = 5000});
     g_config.cursorKeep        = makeShared<CStringValue>("plugin:cursortrail:cursor_keep",        "cursor shapes that are never replaced, comma separated", "crosshair,cross,tcross,cross_reverse,diamond_cross");
     g_config.cursorKeepText    = makeShared<CBoolValue>  ("plugin:cursortrail:cursor_keep_text",   "keep the real text cursor (and pause the trail) over text", true);
     g_config.cursorTextDelay   = makeShared<CIntValue>   ("plugin:cursortrail:cursor_text_delay",  "ms over text before the I-beam / trail pause kicks in", 200, SIntValueOptions{.min = 0, .max = 5000});
@@ -68,7 +70,7 @@ static void registerConfig() {
     for (const SP<IValue>& v : std::initializer_list<SP<IValue>>{
              g_config.enabled,       g_config.lifetime,      g_config.opacity,    g_config.blend,      g_config.width,           g_config.glow,
              g_config.glowSize,      g_config.hotCore,       g_config.velocitySize, g_config.velocityIntensity, g_config.color, g_config.gradient,
-             g_config.tailColor,     g_config.hideInFullscreen, g_config.colorBoost, g_config.cursorEnabled, g_config.cursorKeep, g_config.cursorKeepText, g_config.cursorTextDelay, g_config.cursorTextStyle, g_config.cursorTextHeight, g_config.cursorTextWidth, g_config.cursorInFullscreen, g_config.cursorStyle, g_config.cursorSize, g_config.cursorRing,
+             g_config.tailColor,     g_config.hideInFullscreen, g_config.colorBoost, g_config.cursorEnabled, g_config.debug, g_config.cursorKeepLinger, g_config.cursorKeep, g_config.cursorKeepText, g_config.cursorTextDelay, g_config.cursorTextStyle, g_config.cursorTextHeight, g_config.cursorTextWidth, g_config.cursorInFullscreen, g_config.cursorStyle, g_config.cursorSize, g_config.cursorRing,
              g_config.cursorGlow,    g_config.cursorGlowSize, g_config.cursorOutline, g_config.cursorShadow, g_config.cursorShadowSize, g_config.cursorContrast, g_config.cursorHoverScale, g_config.cursorClickScale,
              g_config.cursorColor,   g_config.cursorCenterColor}) {
         HyprlandAPI::addConfigValueV2(PHANDLE, v);
@@ -172,7 +174,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     registerConfig();
 
     g_trail = makeUnique<CCursorTrail>();
-    g_trail->preloadKeptImages(); // so the first screenshot doesn't read the theme mid-frame
+    g_trail->preloadKeptImages(); // read the cursor_keep shapes from the theme now, not mid-frame
     installShapeHooks();
 
     static auto onMove = Event::bus()->m_events.input.mouse.move.listen([](Vector2D, Event::SCallbackInfo&) {

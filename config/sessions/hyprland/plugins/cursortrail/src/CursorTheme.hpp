@@ -17,6 +17,10 @@ class CCursorThemeImages {
     bool contains(const uint8_t* rgba, int w, int h) const;
     bool empty() const;
 
+    // for cursortrail:debug
+    std::string describe() const;                                 // theme, files, image sizes
+    int         bestMatch(const uint8_t* rgba, int w, int h) const; // % of matching pixels, best same-size image (-1 = none)
+
   private:
     struct SImage {
         int                  w = 0, h = 0;
@@ -24,6 +28,8 @@ class CCursorThemeImages {
     };
 
     std::string                  m_key; // theme + search path + shapes we loaded for
+    std::string                  m_theme;
+    std::vector<std::string>     m_files;
     std::vector<SImage>          m_images;
     std::unordered_set<uint64_t> m_hashes;
 

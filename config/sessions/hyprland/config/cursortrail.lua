@@ -69,6 +69,8 @@ hl.config({
             -- replaces every cursor; over text the normal I-beam stays and the trail pauses
             cursor              = true,
             cursor_style        = 3,            -- shape 0..15, previews: github.com/m-ahiru/hypr-cursortrail#cursor-styles
+            debug               = false,        -- true: notifications about detected app cursors
+            cursor_keep_linger  = 500,          -- ms without cursor after slurp ends, so the screenshot has no cursor in it (0 = off)
             cursor_keep         = "crosshair,cross,tcross,cross_reverse,diamond_cross", -- these stay the real cursor (screenshots, ...), trail pauses
             cursor_keep_text    = true,         -- false: circle replaces the I-beam too (terminals show it everywhere)
             cursor_text_delay   = 200,          -- ms over text before I-beam + trail pause kick in; quick passes don't count
