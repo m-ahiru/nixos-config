@@ -141,3 +141,10 @@ hl.window_rule({
     match   = { class = "^(org\\.gnome\\.Nautilus)$" },
     opacity = "0.90 0.80",
 })
+
+-- Kitty: neuere Version fordert beim Start Maximize an -> würde sonst nicht tilen
+hl.window_rule({
+    name           = "kitty-no-maximize",
+    match          = { class = "^(kitty)$" },
+    suppress_event = "maximize",
+})

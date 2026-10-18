@@ -121,7 +121,7 @@
   users.users.mahiru = {
     isNormalUser = true;
     description = "mahiru";
-    extraGroups = [ "networkmanager" "wheel" "video" "adbusers" "libvirtd"]; 
+    extraGroups = [ "docker" "networkmanager" "wheel" "video" "adbusers" "libvirtd"]; 
     packages = with pkgs; [
     #  thunderbird
     ];
@@ -381,6 +381,8 @@ services.flatpak = {
   ];
   # Virtualization
   virtualisation.libvirtd.enable = true;
+  virtualisation.docker.enable = true;
+  virtualisation.docker.enableOnBoot = false;
   programs.virt-manager.enable = true;
   # Bootloader and kernel
   boot.loader.grub = {
