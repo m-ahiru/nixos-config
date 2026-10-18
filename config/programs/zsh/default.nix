@@ -26,6 +26,8 @@
       soundcloud = "setsid chromium --app=https://soundcloud.com --class Soundcloud >/dev/null 2>&1 &";
       ssh = "TERM=xterm-256color ssh";
       fixmatugen = "matugen image /home/mahiru/Pictures/Wallpapers/fix.jpg";
+      gitreset = "git fetch --all && git reset --hard @{u} && git clean -fd";
+      fixperms = "sudo chown -R $USER:$(id -gn) .";
     };
 
     oh-my-zsh = {

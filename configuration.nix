@@ -241,6 +241,25 @@ programs.hyprland = {
     ];
   };
 
+  # Standard-Terminal für xdg-terminal-exec (Nautilus "Open in Terminal")
+  xdg.terminal-exec = {
+    enable = true;
+    settings = {
+      default  = [ "kitty.desktop" ];
+      GNOME    = [ "kitty.desktop" ];
+      Hyprland = [ "kitty.desktop" ];
+    };
+  };
+
+  # Nautilus: "Open in kitty" per Extension (Nautilus ignoriert xdg-terminal-exec)
+  programs.nautilus-open-any-terminal = {
+    enable = true;
+    terminal = "kitty";
+  };
+
+  # GNOME Console rauswerfen, damit "Open in Console" verschwindet
+  environment.gnome.excludePackages = [ pkgs.gnome-console ];
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "de";
