@@ -21,7 +21,7 @@
       crop43 = "/etc/nixos/config/programs/zsh/Scripts/crop43.sh";
       # ac = "cd ~/Apps/uClicker/;./uClicker";
       upscale = "/etc/nixos/config/programs/zsh/Scripts/upscale.sh";
-      claude = "setsid chromium --app=https://claude.ai --class Claude >/dev/null 2>&1 &";
+      openclaude = "setsid chromium --app=https://claude.ai --class Claude >/dev/null 2>&1 &";
       whatsapp = "setsid chromium --app=https://web.whatsapp.com --class WhatsApp >/dev/null 2>&1 &";
       soundcloud = "setsid chromium --app=https://soundcloud.com --class Soundcloud >/dev/null 2>&1 &";
       ssh = "TERM=xterm-256color ssh";
