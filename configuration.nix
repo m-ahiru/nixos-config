@@ -167,7 +167,17 @@ security.wrappers.bwrap = {
   programs.appimage = {
     enable = true;
     binfmt = true;
-};
+    # Extra-Libs für AppImages, die sie nicht selbst bündeln (z. B. Ferestre)
+    package = pkgs.appimage-run.override {
+      extraPkgs = pkgs: with pkgs; [
+        libadwaita
+        gtk4
+        webkitgtk_4_1
+        libsoup_3
+        glib-networking
+      ];
+    };
+  };
  
   programs.uclicker = {
   enable = true;
