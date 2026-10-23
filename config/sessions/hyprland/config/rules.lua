@@ -45,6 +45,13 @@ end
 -- --------------------------
 hl.window_rule({ match = { title = "^(Clock)$" },                             workspace = "9" })
 hl.window_rule({ match = { class = "^(discord-canary|discord|vesktop)$" },    workspace = "9" })
+
+-- Discord merkt sich "maximiert" und fordert das beim Start an -> würde sonst ganz WS 9 einnehmen
+hl.window_rule({
+    name           = "discord-no-maximize",
+    match          = { class = "^(discord-canary|discord|vesktop)$" },
+    suppress_event = "maximize",
+})
 hl.window_rule({ match = { class = "^(zen)$" },                               workspace = "3" })
 hl.window_rule({ match = { class = "^(steam)$" },                             workspace = "2 silent" })
 hl.window_rule({ match = { class = "^(com\\.obsproject\\.Studio)$" },         workspace = "5" })
