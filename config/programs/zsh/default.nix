@@ -17,6 +17,8 @@
       clock = "setsid kitty --title Clock tty-clock -c -C 6 -s >/dev/null 2>&1 &";
       gubtool = "~/.cargo/bin/gubtool";
       compress = "/etc/nixos/config/programs/zsh/Scripts/resize_video.sh";
+      thor    = "scrcpy --video-codec=h264 --max-fps=60 --video-bit-rate=16M --audio-buffer=30 --stay-awake";
+      thorbot = "scrcpy --display-id=1 --video-codec=h264 --max-fps=60 --no-audio --stay-awake";
       videodl = ''yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" --merge-output-format mp4 -P ~/Videos'';
       crop43 = "/etc/nixos/config/programs/zsh/Scripts/crop43.sh";
       # ac = "cd ~/Apps/uClicker/;./uClicker";

@@ -26,6 +26,8 @@
     unstable.protonplus
     blender
     claude-code
+    scrcpy
+    filezilla
     pkgs.android-tools
     runelite
     mame-tools
