@@ -60,7 +60,16 @@
     gst_all_1.gst-plugins-ugly
     gst_all_1.gst-libav
     gamescope
-    adwsteamgtk
+    # nixpkgs hat nur 0.8.0, die kaputt ist mit Adwaita-for-Steam v4 (custom/-Ordner fehlt)
+    (adwsteamgtk.overrideAttrs (old: {
+      version = "0.9.1";
+      src = fetchFromGitHub {
+        owner = "Foldex";
+        repo = "AdwSteamGtk";
+        tag = "v0.9.1";
+        hash = "sha256-ICDagK/vklptnn9NjVMNLkflfwKxlyeWfMqp/pvZLTE=";
+      };
+    }))
     mesa-demos
     vulkan-tools
     unstable.discord
