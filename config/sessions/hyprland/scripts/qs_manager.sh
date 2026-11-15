@@ -153,15 +153,9 @@ handle_network_prep() {
 # -----------------------------------------------------------------------------
 MAIN_QML_PATH="$HOME/.config/hypr/scripts/quickshell/Main.qml"
 BAR_QML_PATH="$HOME/.config/hypr/scripts/quickshell/TopBar.qml"
-FLOATING_QML_PATH="$HOME/.config/hypr/scripts/quickshell/Floating.qml"
 
 if ! pgrep -f "quickshell.*Main\.qml" >/dev/null; then
     quickshell -p "$MAIN_QML_PATH" >/dev/null 2>&1 &
-    disown
-fi
-
-if ! pgrep -f "quickshell.*Floating\.qml" >/dev/null; then
-    quickshell -p "$FLOATING_QML_PATH" >/dev/null 2>&1 &
     disown
 fi
 

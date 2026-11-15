@@ -15,7 +15,6 @@ local startup = {
     "gsettings set org.gnome.desktop.interface cursor-size 24",
     "quickshell -p ~/.config/hypr/scripts/quickshell/Main.qml",
     "quickshell -p ~/.config/hypr/scripts/quickshell/TopBar.qml",
-    "quickshell -p ~/.config/hypr/scripts/quickshell/Floating.qml",
     "python3 ~/.config/hypr/scripts/quickshell/focustime/focus_daemon.py &",
 
     "steam",

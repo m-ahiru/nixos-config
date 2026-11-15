@@ -133,7 +133,7 @@
   users.users.mahiru = {
     isNormalUser = true;
     description = "mahiru";
-    extraGroups = [ "docker" "networkmanager" "wheel" "video" "adbusers" "libvirtd"]; 
+    extraGroups = [ "docker" "networkmanager" "wheel" "video" "adbusers" "libvirtd" "dialout"]; 
     packages = with pkgs; [
     #  thunderbird
     ];
