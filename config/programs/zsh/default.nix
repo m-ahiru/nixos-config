@@ -30,6 +30,8 @@
       fixmatugen = "matugen image /home/mahiru/Pictures/Wallpapers/fix.jpg";
       gitreset = "git fetch --all && git reset --hard @{u} && git clean -fd";
       fixperms = "sudo chown -R $USER:$(id -gn) .";
+      # Einmalig direkt in Windows booten (UEFI BootNext), danach wieder normal GRUB/NixOS
+      windows = ''sudo efibootmgr --bootnext "$(efibootmgr | grep -m1 'Windows Boot Manager' | sed -E 's/^Boot([0-9A-F]{4}).*/\1/')" && systemctl reboot'';
     };
 
     oh-my-zsh = {

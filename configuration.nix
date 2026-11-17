@@ -20,6 +20,7 @@
   # System packages
   environment.systemPackages = with pkgs; [
     wget 
+    efibootmgr
     file-roller
 #    (inputs.nixpkgs-librewolf.legacyPackages.${pkgs.system}.librewolf)
     protontricks
@@ -382,10 +383,7 @@ services.flatpak = {
   nixpkgs.config.allowUnfree = true;
   # /mnt/secondary (HDD sdb) entfernt: Platte wird für Windows (Dual-Boot) genutzt.
 
-  fileSystems."/mnt/tertiary" = {
-  device = "/dev/disk/by-uuid/18e4a258-940f-44d9-b7a8-9c5fa40a52fe";
-  fsType = "ext4";
-  };
+  # /mnt/tertiary (Intenso-SSD sda) entfernt: Platte wird für Windows genutzt.
 
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
