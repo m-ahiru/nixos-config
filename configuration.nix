@@ -210,6 +210,8 @@ security.wrappers.bwrap = {
     enable = true;
     remotePlay.openFirewall = true; 
     dedicatedServer.openFirewall = true; 
+    # MangoHud in der Steam-Umgebung, damit "mangohud %command%" in den Startoptionen funktioniert
+    extraPackages = [ pkgs.mangohud ];
   };
   programs.gamemode.enable = false;
 
@@ -391,6 +393,13 @@ services.flatpak = {
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # Komprimierter Swap im RAM: fängt Speicherspitzen ab (z. B. nanos world/Zenkai beim Streamen),
+  # statt dass der OOM-Killer das Spiel abschießt.
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;
+  };
+
   nix.gc = {
     automatic = true;
     dates = "daily";
@@ -426,7 +435,7 @@ services.flatpak = {
   hardware.cpu.amd.updateMicrocode = true;
   hardware.enableRedistributableFirmware = true;
 
-  boot.kernelModules = [ "tcp_bbr" ]; # FIX: Network Congestion Control (Helps with packet jitter)
+  boot.kernelModules = [ "tcp_bbr" "ntsync" ]; # tcp_bbr: Congestion Control (packet jitter); ntsync: schnellere Wine/Proton-Synchronisation (CPU-lastige Spiele)
   boot.kernel.sysctl = {
     "net.ipv4.tcp_congestion_control" = "bbr";
     "net.core.default_qdisc" = "fq";
@@ -442,6 +451,10 @@ services.xserver.videoDrivers = [ "amdgpu" ];
 hardware.graphics = {
 	enable = true;
 	enable32Bit = true;
+  # Mesa (RADV) aus unstable für die RX 9070 (RDNA4): neuere Treiber-Fixes, Rest bleibt auf 26.05.
+  # Bei Problemen (z. B. Hyprland startet nicht): im Boot-Menü vorherige Generation wählen und diesen Block entfernen.
+  package = unstable.mesa;
+  package32 = unstable.pkgsi686Linux.mesa;
   extraPackages = with pkgs; [
       rocmPackages.clr.icd
   ];
