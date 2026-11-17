@@ -380,10 +380,7 @@ services.flatpak = {
 
   # Nix settings and maintenance
   nixpkgs.config.allowUnfree = true;
-  fileSystems."/mnt/secondary" = {
-  device = "/dev/disk/by-uuid/6be3dc24-6b49-4341-b0f5-6670d66ee0e4";
-  fsType = "ext4";
-  };
+  # /mnt/secondary (HDD sdb) entfernt: Platte wird für Windows (Dual-Boot) genutzt.
 
   fileSystems."/mnt/tertiary" = {
   device = "/dev/disk/by-uuid/18e4a258-940f-44d9-b7a8-9c5fa40a52fe";
@@ -423,6 +420,8 @@ services.flatpak = {
     gfxmodeEfi = "1920x1080";
     gfxpayloadEfi = "keep";
     configurationLimit = 10;
+    # Findet Windows Boot Manager auf der HDD und legt einen GRUB-Eintrag an
+    useOSProber = true;
   };
   boot.loader.efi.canTouchEfiVariables = true;
   boot.extraModprobeConfig = ''
