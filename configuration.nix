@@ -451,10 +451,6 @@ services.xserver.videoDrivers = [ "amdgpu" ];
 hardware.graphics = {
 	enable = true;
 	enable32Bit = true;
-  # Mesa (RADV) aus unstable für die RX 9070 (RDNA4): neuere Treiber-Fixes, Rest bleibt auf 26.05.
-  # Bei Problemen (z. B. Hyprland startet nicht): im Boot-Menü vorherige Generation wählen und diesen Block entfernen.
-  package = unstable.mesa;
-  package32 = unstable.pkgsi686Linux.mesa;
   extraPackages = with pkgs; [
       rocmPackages.clr.icd
   ];
