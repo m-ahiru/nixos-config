@@ -58,6 +58,20 @@ hl.window_rule({ match = { class = "^(com\\.obsproject\\.Studio)$" },         wo
 hl.window_rule({ match = { class = "^(steam_app_\\d+)$" },                    workspace = "4" })
 hl.window_rule({ match = { class = "^(retroarch)$" },                         workspace = "4" })
 
+-- RetroArch: Cursor komplett aus, solange RetroArch fokussiert ist.
+-- Ohne das bleibt der Cursor nach Workspace-Wechsel sichtbar, bis man die Maus bewegt
+-- (RetroArch versteckt ihn erst, wenn es wieder ein Pointer-Enter bekommt).
+-- cursor:invisible blendet auch den cursortrail-Kreis aus (Plugin checkt m_cursorHidden).
+local cursorHiddenFor = false
+hl.on("window.active", function(w)
+    local ok, cls = pcall(function() return w and w.class end)
+    local hide = ok and cls == "retroarch"
+    if hide ~= cursorHiddenFor then
+        cursorHiddenFor = hide
+        hl.config({ cursor = { invisible = hide } })
+    end
+end)
+
 -- Claude (PWA)
 hl.window_rule({
     name      = "pwa-claude",
